@@ -5,15 +5,27 @@ export const revalidate = 0;
 async function getSchedules() {
   const data = await client.get({
     endpoint: 'schedule',
-    // 'date' と指定することで、日付が古い順（＝今日に近い順）に並び替えます
-    queries: { orders: 'date' }
+    queries: { 
+      orders: 'date',
+      // microCMSのフィルタ機能を使って、今日以降のライブのみ取得します
+      // [現在時刻よりも日付が後のもの] という条件です
+      filters: `date[greater_than]${new Date().toISOString()}`
+    }
   });
   return data.contents;
 }
 
 export default async function SchedulePage() {
   const schedules = await getSchedules();
-  const dayOfWeekStr = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+  // もし予定されているライブが1件もない場合の表示
+  if (schedules.length === 0) {
+    return (
+      <main className="min-h-screen bg-[#0a0a0a] text-white pb-24 flex items-center justify-center">
+        <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho">No scheduled live at the moment.</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white pb-24">
