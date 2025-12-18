@@ -5,7 +5,8 @@ export const revalidate = 0;
 async function getSchedules() {
   const data = await client.get({
     endpoint: 'schedule',
-    queries: { orders: '-date' }
+    // 'date' と指定することで、日付が古い順（＝今日に近い順）に並び替えます
+    queries: { orders: 'date' }
   });
   return data.contents;
 }
@@ -21,10 +22,8 @@ export default async function SchedulePage() {
         
         <div className="space-y-24">
           {schedules.map((item) => {
-            // タイムゾーンのズレを補正して日本時間として扱う
             const dateObj = item.date ? new Date(item.date) : null;
             
-            // 表示用の日付（YYYY.MM.DD）
             const dateDisplay = dateObj ? dateObj.toLocaleDateString('ja-JP', {
               year: 'numeric',
               month: '2-digit',
@@ -32,7 +31,6 @@ export default async function SchedulePage() {
               timeZone: 'Asia/Tokyo'
             }).replace(/\//g, '.') : 'DATE TBD';
 
-            // 曜日の取得（日本時間基準）
             const dayIndex = dateObj ? new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(dateObj).toUpperCase() : '';
             const dayDisplay = dayIndex ? `[${dayIndex}]` : '';
 
