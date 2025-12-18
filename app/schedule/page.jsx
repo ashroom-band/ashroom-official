@@ -1,4 +1,5 @@
 import { client } from '../../lib/microcms';
+export const revalidate = 0;
 
 async function getSchedules() {
   const data = await client.get({
