@@ -18,20 +18,26 @@ export default async function SchedulePage() {
       <div className="max-w-4xl mx-auto px-4 pt-24">
         <h1 className="text-4xl font-bold mb-16 text-center tracking-widest uppercase shippori-mincho text-white">SCHEDULE</h1>
         
-        <div className="space-y-20">
+        <div className="space-y-24">
           {schedules.map((item) => (
             <div key={item.id} className="border-b border-white/20 pb-16 flex flex-col md:flex-row gap-8 items-start">
               
-              {/* フライヤー画像（フィールドID: flyer） */}
-              <div className="w-full md:w-56 shrink-0 aspect-[3/4] bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+              {/* フライヤー画像エリア */}
+              <div className="w-full md:w-64 shrink-0">
                 {item.flyer && item.flyer.url ? (
-                  <img 
-                    src={item.flyer.url} 
-                    alt={item.name || item.venue} 
-                    className="w-full h-full object-cover"
-                  />
+                  /* object-contain にすることで、画像を切らずに全体を表示します */
+                  <div className="w-full bg-black flex items-center justify-center border border-white/10 shadow-2xl">
+                    <img 
+                      src={item.flyer.url} 
+                      alt={item.name || item.venue} 
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
                 ) : (
-                  <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Coming Soon</span>
+                  /* 画像がないときは 16:9 の比率で Coming Soon と表示 */
+                  <div className="w-full aspect-video bg-white/5 border border-white/10 flex items-center justify-center">
+                    <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Coming Soon</span>
+                  </div>
                 )}
               </div>
               
@@ -43,10 +49,10 @@ export default async function SchedulePage() {
                   </span>
                 </div>
 
-                {/* イベント名（フィールドID: name） */}
+                {/* イベント名（『』で囲む） */}
                 {item.name && (
-                  <div className="text-lg font-bold text-white mb-2 tracking-wide">
-                    {item.name}
+                  <div className="text-xl font-bold text-white mb-3 tracking-wide leading-relaxed">
+                    『{item.name}』
                   </div>
                 )}
                 
@@ -57,12 +63,12 @@ export default async function SchedulePage() {
                 <div className="grid grid-cols-1 gap-4 mb-8 border-y border-white/10 py-5">
                   {/* 時刻 */}
                   <div className="flex gap-8 text-sm tracking-widest font-mono text-white">
-                    {item.open_time && <div>OPEN <span className="ml-2">{item.open_time}</span></div>}
-                    {item.start_time && <div>START <span className="ml-2">{item.start_time}</span></div>}
+                    {item.open_time && <div>OPEN <span className="ml-2 font-sans">{item.open_time}</span></div>}
+                    {item.start_time && <div>START <span className="ml-2 font-sans">{item.start_time}</span></div>}
                   </div>
 
-                  {/* 価格（複数表示対応） */}
-                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm tracking-widest text-white uppercase">
+                  {/* 価格（入力されているものをすべて横並びで表示） */}
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm tracking-widest text-white uppercase font-sans">
                     {item.adv_price && <div>ADV <span className="ml-1">¥{item.adv_price}</span></div>}
                     {item.door_price && <div>DOOR <span className="ml-1">¥{item.door_price}</span></div>}
                     {item.student_price && <div>STUDENT <span className="ml-1">¥{item.student_price}</span></div>}
@@ -70,8 +76,8 @@ export default async function SchedulePage() {
                   </div>
                 </div>
 
-                {/* ライブ詳細 */}
-                <div className="text-white text-sm leading-relaxed mb-8 whitespace-pre-wrap opacity-90">
+                {/* ライブ詳細テキスト */}
+                <div className="text-white text-sm leading-relaxed mb-8 whitespace-pre-wrap">
                   {item.description}
                 </div>
 
@@ -87,7 +93,7 @@ export default async function SchedulePage() {
                       TICKET & INFO
                     </a>
                   ) : (
-                    <p className="text-[11px] text-white/70 tracking-widest leading-loose w-full mb-2">
+                    <p className="text-[11px] text-white tracking-widest leading-loose w-full mb-2 bg-white/5 p-3 border-l-2 border-white">
                       ※TICKET取り置きは、各SNSのDMでご連絡ください。
                     </p>
                   )}
