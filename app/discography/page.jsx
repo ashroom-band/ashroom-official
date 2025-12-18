@@ -5,7 +5,7 @@ export const revalidate = 0;
 async function getDiscography() {
   const data = await client.get({
     endpoint: 'discography',
-    queries: { orders: '-release_date' } // 新しい順
+    queries: { orders: '-release_date' }
   });
   return data.contents;
 }
@@ -20,7 +20,6 @@ export default async function DiscoPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
           {disco.map((item) => {
-            // 日本時間基準での日付表示
             const dateObj = item.release_date ? new Date(item.release_date) : null;
             const dateDisplay = dateObj ? new Intl.DateTimeFormat('ja-JP', {
               year: 'numeric',
@@ -30,15 +29,15 @@ export default async function DiscoPage() {
             }).format(dateObj).replace(/\//g, '.') : '';
 
             return (
-              <div key={item.id} className="group">
+              <div key={item.id} className="block">
                 
-                {/* ジャケット画像 */}
+                {/* ジャケット画像（ズーム効果を削除） */}
                 <div className="aspect-square w-full overflow-hidden bg-white/5 border border-white/10 mb-6 shadow-2xl relative">
                   {item.jacket ? (
                     <img 
                       src={item.jacket.url} 
                       alt={item.title} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white/20 text-xs tracking-widest uppercase font-sans">No Image</div>
@@ -48,14 +47,14 @@ export default async function DiscoPage() {
                 {/* 作品情報 */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-baseline border-b border-white/10 pb-2">
-                    {/* 種別と日付：サイズを大きく、色を濃い白に変更 */}
                     <span className="text-[13px] tracking-[0.2em] text-white font-bold uppercase">{item.type}</span>
                     <span className="text-[13px] font-mono text-white tracking-tighter">
                       {dateDisplay}
                     </span>
                   </div>
                   
-                  <h2 className="text-2xl font-bold tracking-wider group-hover:text-gray-400 transition-colors pt-1">{item.title}</h2>
+                  {/* タイトル（ホバー時の色変化を削除） */}
+                  <h2 className="text-2xl font-bold tracking-wider text-white pt-1">{item.title}</h2>
                   
                   {/* 解説 */}
                   {item.description && (
