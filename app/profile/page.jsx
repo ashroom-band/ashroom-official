@@ -10,6 +10,11 @@ async function getProfile() {
     try {
         const data = await client.get({
             endpoint: 'profile',
+            // キャッシュを無効化して最新を取得する設定を追加
+            queries: { cache: false }, 
+            customRequestInit: {
+                cache: 'no-store',
+            },
         });
         return data;
     } catch (error) {
