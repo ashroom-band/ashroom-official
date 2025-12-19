@@ -113,4 +113,56 @@ export default async function Home() {
                     <SectionTitle title="SCHEDULE" path="/schedule" />
                     <div className="space-y-4">
                         {scheduleData.contents.map((item) => (
-                            <Link key={item.id} href="/schedule" className="group flex flex-col md:flex-row md
+                            <Link key={item.id} href="/schedule" className="group flex flex-col md:flex-row md:items-center gap-6 p-6 hover:bg-white/[0.02] transition-all border border-white/5">
+                                <div className="md:w-48 shrink-0">
+                                    <p className="text-2xl font-bold tracking-tighter italic">{item.date.replace(/-/g, '.')}</p>
+                                </div>
+                                <div className="flex-grow">
+                                    <h3 className="text-xl font-bold group-hover:font-semibold transition-all duration-300">{item.venue}</h3>
+                                    <p className="text-sm text-white/40 tracking-widest uppercase mt-1">『{item.name}』</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[10px] tracking-[0.3em] border border-white/20 px-8 py-3 group-hover:bg-white group-hover:text-black transition-all duration-500 uppercase">View Detail</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+
+                {/* --- RELEASE & VIDEO --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+                    <section>
+                        <SectionTitle title="RELEASE" path="/discography" />
+                        <div className="space-y-10">
+                            {discoData.contents.map((item) => (
+                                <Link key={item.id} href="/discography" className="group block">
+                                    <div className="aspect-square overflow-hidden bg-white/5 mb-6 border border-white/5">
+                                        <img src={item.jacket?.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" alt="" />
+                                    </div>
+                                    <p className="text-[10px] tracking-widest text-white/40 uppercase mb-2">{item.type}</p>
+                                    <h3 className="text-lg font-normal group-hover:font-semibold transition-all duration-300">{item.title}</h3>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section>
+                        <SectionTitle title="VIDEO" path="/video" />
+                        <a href={`https://www.youtube.com/watch?v=${latestVideoId}`} target="_blank" rel="noopener noreferrer" className="group block">
+                            <div className="aspect-video relative overflow-hidden border border-white/5 bg-white/5">
+                                <img src={`https://img.youtube.com/vi/${latestVideoId}/maxresdefault.jpg`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" alt="" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-16 h-16 border border-white/20 rounded-full flex items-center justify-center group-hover:bg-white/10 group-hover:scale-110 transition-all duration-500">
+                                        <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <h3 className="mt-8 text-lg font-normal group-hover:font-semibold transition-all tracking-[0.1em] uppercase shippori-mincho">Latest Music Video</h3>
+                        </a>
+                    </section>
+                </div>
+
+            </div>
+        </div>
+    );
+}
