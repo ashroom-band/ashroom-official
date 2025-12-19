@@ -30,10 +30,6 @@ export default function ContactPage() {
                     メールを送る
                 </a>
             </div>
-
-            <div className="mt-16 text-gray-500 text-sm">
-                ※ ファンレターやプレゼントの送り先については、改めて告知いたします。
-            </div>
         </div>
     );
 }
