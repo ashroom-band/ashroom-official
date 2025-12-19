@@ -2,158 +2,182 @@ import Link from 'next/link';
 import { client } from '../lib/microcms';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 3600;
 
-// --- 共通コンポーネント：セクションタイトル ---
-const SectionTitle = ({ title, path }) => (
-    <div className="flex justify-between items-end border-b border-white/10 pb-4 mb-10">
-        <h2 className="text-2xl font-bold text-white tracking-[0.2em] shippori-mincho uppercase">{title}</h2>
-        <Link href={path} className="text-[10px] text-white/40 hover:text-white tracking-widest transition-colors duration-500 uppercase">
-            VIEW ALL &gt;
-        </Link>
-    </div>
-);
+// --- Data Fetching Functions ---
 
-export default async function Home() {
-    // 1. 各エンドポイントからデータを一括取得
-    const [profileData, newsData, scheduleData, discoData] = await Promise.all([
-        client.get({ endpoint: 'profile' }),
-        client.get({ endpoint: 'news', queries: { limit: 2, orders: '-published' } }),
-        client.get({ endpoint: 'schedule', queries: { limit: 1, orders: 'date', filters: `date[greater_than]${new Date().toISOString()}` } }),
-        client.get({ endpoint: 'discography', queries: { limit: 2, orders: '-releaseDate' } })
-    ]);
+async function getNews() {
+    const data = await client.get({
+        endpoint: 'news',
+        queries: { orders: '-published', limit: 2 }
+    });
+    return data.contents;
+}
 
-    const profile = profileData.contents[0];
-    const latestLive = scheduleData.contents[0];
-    const latestDisco = discoData.contents[0];
-    const latestVideoId = "t96q-B-F1rU"; // 今後microCMSで管理可能
+async function getSchedules() {
+    const data = await client.get({
+        endpoint: 'schedule',
+        queries: { 
+            orders: 'date',
+            filters: `date[greater_than]${new Date().toISOString()}`,
+            limit: 2
+        }
+    });
+    return data.contents;
+}
 
-    // スライダー（バナー）用のデータ
-    const slides = [
-        { src: latestLive?.flyer?.url, link: '/schedule', label: 'NEXT LIVE', title: latestLive?.venue },
-        { src: latestDisco?.jacket?.url, link: '/discography', label: 'NEW RELEASE', title: latestDisco?.title },
-        { src: `https://img.youtube.com/vi/${latestVideoId}/maxresdefault.jpg`, link: '/video', label: 'LATEST VIDEO', title: 'Music Video' }
-    ].filter(s => s.src);
+async function getDiscography() {
+    const data = await client.get({
+        endpoint: 'discography',
+        queries: { orders: '-release_date', limit: 1 }
+    });
+    return data.contents;
+}
 
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+async function getLatestVideo() {
+    const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+    const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
+    if (!API_KEY || !CHANNEL_ID) return null;
+
+    try {
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`);
+        const data = await res.json();
+        const videoIds = data.items.map(item => item.id.videoId).join(',');
+        const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`);
+        const detailData = await detailRes.json();
+
+        return detailData.items.filter(item => {
+            const duration = item.contentDetails.duration;
+            const title = item.snippet.title.toLowerCase();
+            return (duration.includes('M') || duration.includes('H')) && !title.includes('#shorts');
+        })[0]; // 最新1件のみ
+    } catch (e) { return null; }
+}
+
+export default async function HomePage() {
+    const news = await getNews();
+    const schedules = await getSchedules();
+    const disco = await getDiscography();
+    const video = await getLatestVideo();
 
     return (
-        <div className="bg-[#0a0a0a] min-h-screen text-white">
+        <main className="bg-[#0a0a0a] text-white space-y-32 pb-32">
             
-            {/* --- HERO SECTION --- */}
-            <section className="relative h-[90vh] w-full flex flex-col items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 z-0">
-                    {profile?.artist_photo?.url && (
-                        <img 
-                            src={profile.artist_photo.url} 
-                            alt="ashroom" 
-                            className="w-full h-full object-cover grayscale-[20%]" 
-                        />
-                    )}
-                    <div className="absolute inset-0 bg-black/40"></div>
-                </div>
-
-                <div className="relative z-10 text-center px-4 w-full">
-                    {profile?.tagline && (
-                        <h1 className="text-xl md:text-3xl font-bold tracking-tight text-white/95 shippori-mincho italic drop-shadow-[0_0_15px_rgba(0,0,0,0.8)] whitespace-nowrap">
-                            {profile.tagline}
-                        </h1>
-                    )}
+            {/* NEWS SECTION */}
+            <section className="pt-24 px-4 max-w-4xl mx-auto w-full">
+                <Link href="/news" className="block group text-center mb-16">
+                    <h2 className="text-4xl font-bold tracking-tight uppercase shippori-mincho group-hover:opacity-50 transition-opacity">NEWS</h2>
+                </Link>
+                <div className="divide-y divide-white/5 border-t border-white/5">
+                    {news.map((item) => {
+                        const dateObj = item.published ? new Date(item.published) : null;
+                        const dateDisplay = dateObj ? dateObj.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).replace(/\//g, '.') : '';
+                        const dayIndex = dateObj ? new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(dateObj).toUpperCase() : '';
+                        return (
+                            <Link key={item.id} href={`/news/${item.id}`} className="group flex flex-col md:flex-row md:items-center py-8 hover:bg-white/[0.02] transition-all px-4">
+                                <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0">
+                                    <span className="text-lg font-bold tracking-widest text-white">{dateDisplay} <span className="text-xs ml-1 font-mono">[{dayIndex}]</span></span>
+                                    {item.category && <span className="text-[10px] border border-white/20 px-3 py-1 tracking-widest text-white/40 uppercase">{item.category}</span>}
+                                </div>
+                                <div className="flex-grow">
+                                    <h3 className="text-base md:text-lg font-normal tracking-wide text-gray-300 group-hover:text-white group-hover:font-semibold transition-all duration-300">{item.title}</h3>
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </div>
             </section>
 
-            <div className="max-w-4xl mx-auto px-4 py-24 space-y-32">
-                
-                {/* --- BANNER GRID AREA --- */}
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {slides.map((slide, i) => (
-                        <Link key={i} href={slide.link} className="group relative aspect-[4/5] overflow-hidden border border-white/5 bg-zinc-900">
-                            <img src={slide.src} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" alt="" />
-                            <div className="absolute top-4 left-4 border border-white/20 bg-black/60 text-[9px] tracking-widest px-2 py-1 uppercase z-10">
-                                {slide.label}
-                            </div>
-                            <div className="absolute bottom-4 left-4 right-4 z-10">
-                                <p className="text-xs font-bold tracking-tight truncate shippori-mincho">{slide.title}</p>
-                            </div>
-                        </Link>
-                    ))}
-                </section>
-
-                {/* --- NEWS SECTION --- */}
-                <section>
-                    <SectionTitle title="NEWS" path="/news" />
-                    <div className="divide-y divide-white/5">
-                        {newsData.contents.map((item) => {
-                            const dateObj = new Date(item.published);
-                            return (
-                                <Link key={item.id} href={`/news/${item.id}`} className="group block py-10 hover:bg-white/[0.02] transition-all px-4">
-                                    <p className="text-xs text-white/40 mb-3 font-mono tracking-widest uppercase">
-                                        {item.published.split('T')[0].replace(/-/g, '.')} [{days[dateObj.getDay()]}]
-                                    </p>
-                                    <h3 className="text-base md:text-lg font-normal text-white/80 group-hover:text-white group-hover:font-semibold transition-all duration-300">
-                                        {item.title}
-                                    </h3>
-                                </Link>
-                            );
-                        })}
-                    </div>
-                </section>
-
-                {/* --- SCHEDULE SECTION --- */}
-                <section>
-                    <SectionTitle title="SCHEDULE" path="/schedule" />
-                    <div className="space-y-4">
-                        {scheduleData.contents.map((item) => (
-                            <Link key={item.id} href="/schedule" className="group flex flex-col md:flex-row md:items-center gap-6 p-6 hover:bg-white/[0.02] transition-all border border-white/5">
-                                <div className="md:w-48 shrink-0">
-                                    <p className="text-2xl font-bold tracking-tighter italic">{item.date.replace(/-/g, '.')}</p>
-                                </div>
-                                <div className="flex-grow">
-                                    <h3 className="text-xl font-bold group-hover:font-semibold transition-all duration-300">{item.venue}</h3>
-                                    <p className="text-sm text-white/40 tracking-widest uppercase mt-1">『{item.name}』</p>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] tracking-[0.3em] border border-white/20 px-8 py-3 group-hover:bg-white group-hover:text-black transition-all duration-500 uppercase">View Detail</span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
-
-                {/* --- RELEASE & VIDEO --- */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-                    <section>
-                        <SectionTitle title="RELEASE" path="/discography" />
-                        <div className="space-y-10">
-                            {discoData.contents.map((item) => (
-                                <Link key={item.id} href="/discography" className="group block">
-                                    <div className="aspect-square overflow-hidden bg-white/5 mb-6 border border-white/5">
-                                        <img src={item.jacket?.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" alt="" />
-                                    </div>
-                                    <p className="text-[10px] tracking-widest text-white/40 uppercase mb-2">{item.type}</p>
-                                    <h3 className="text-lg font-normal group-hover:font-semibold transition-all duration-300">{item.title}</h3>
-                                </Link>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section>
-                        <SectionTitle title="VIDEO" path="/video" />
-                        <a href={`https://www.youtube.com/watch?v=${latestVideoId}`} target="_blank" rel="noopener noreferrer" className="group block">
-                            <div className="aspect-video relative overflow-hidden border border-white/5 bg-white/5">
-                                <img src={`https://img.youtube.com/vi/${latestVideoId}/maxresdefault.jpg`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" alt="" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-16 h-16 border border-white/20 rounded-full flex items-center justify-center group-hover:bg-white/10 group-hover:scale-110 transition-all duration-500">
-                                        <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+            {/* SCHEDULE SECTION */}
+            <section className="px-4 max-w-4xl mx-auto w-full">
+                <Link href="/schedule" className="block group text-center mb-16">
+                    <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho group-hover:opacity-50 transition-opacity">SCHEDULE</h2>
+                </Link>
+                <div className="space-y-16">
+                    {schedules.map((item) => {
+                        const dateObj = item.date ? new Date(item.date) : null;
+                        const dateDisplay = dateObj ? dateObj.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).replace(/\//g, '.') : 'DATE TBD';
+                        const dayIndex = dateObj ? new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(dateObj).toUpperCase() : '';
+                        return (
+                            <div key={item.id} className="border-b border-white/10 pb-12 flex flex-col md:flex-row gap-8 items-start">
+                                <div className="w-full md:w-48 shrink-0">
+                                    <div className="w-full bg-black border border-white/10 shadow-xl">
+                                        <img src={item.flyer?.url || "/no-image.jpg"} alt="" className="w-full h-auto" />
                                     </div>
                                 </div>
+                                <div className="flex-grow w-full">
+                                    <div className="mb-2 flex items-baseline gap-3">
+                                        <span className="text-2xl font-mono text-white tracking-tighter">{dateDisplay}</span>
+                                        <span className="text-sm font-mono text-white tracking-widest uppercase">[{dayIndex}]</span>
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-white tracking-tight">{item.venue}</h3>
+                                    <p className="text-white text-sm leading-relaxed mb-6 line-clamp-3">{item.description}</p>
+                                    <Link href="/schedule" className="inline-block px-8 py-2 border border-white text-[10px] tracking-widest hover:bg-white hover:text-black transition-all">VIEW DETAILS</Link>
+                                </div>
                             </div>
-                            <h3 className="mt-8 text-lg font-normal group-hover:font-semibold transition-all tracking-[0.1em] uppercase shippori-mincho">Latest Music Video</h3>
-                        </a>
-                    </section>
+                        );
+                    })}
                 </div>
+            </section>
 
-            </div>
-        </div>
+            {/* DISCOGRAPHY SECTION */}
+            <section className="px-4 max-w-4xl mx-auto w-full">
+                <Link href="/discography" className="block group text-center mb-16">
+                    <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho group-hover:opacity-50 transition-opacity">DISCOGRAPHY</h2>
+                </Link>
+                {disco.map((item) => {
+                    const dateObj = item.release_date ? new Date(item.release_date) : null;
+                    const dateDisplay = dateObj ? new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).format(dateObj).replace(/\//g, '.') : '';
+                    return (
+                        <div key={item.id} className="flex flex-col md:flex-row gap-12 items-center md:items-start">
+                            <div className="w-full md:w-1/2 aspect-square bg-white/5 border border-white/10 shadow-2xl overflow-hidden">
+                                <img src={item.jacket?.url} alt={item.title} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="w-full md:w-1/2 space-y-4">
+                                <div className="flex justify-between items-baseline border-b border-white/10 pb-2">
+                                    <span className="text-[13px] tracking-[0.2em] font-bold uppercase">{item.type}</span>
+                                    <span className="text-[13px] font-mono tracking-tighter">{dateDisplay}</span>
+                                </div>
+                                <h3 className="text-3xl font-bold tracking-wider">{item.title}</h3>
+                                <div className="text-sm text-white/80 leading-relaxed prose-invert line-clamp-4" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                {item.link_url && (
+                                    <div className="pt-6">
+                                        <a href={item.link_url} target="_blank" rel="noopener noreferrer" className="inline-block w-full py-4 border border-white text-[10px] tracking-[0.4em] text-center hover:bg-white hover:text-black transition-all uppercase">LISTEN / BUY</a>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </section>
+
+            {/* VIDEO SECTION */}
+            <section className="px-4 max-w-5xl mx-auto w-full">
+                <Link href="/video" className="block group text-center mb-16">
+                    <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase group-hover:opacity-50 transition-opacity">VIDEO</h2>
+                </Link>
+                {video && (
+                    <div className="w-full">
+                        <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer" className="block group">
+                            <div className="relative aspect-video overflow-hidden border border-white/10 shadow-2xl">
+                                <img src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} alt={video.snippet.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-20 h-14 bg-[#FF0000] rounded-xl flex items-center justify-center opacity-90 transition-transform group-hover:scale-110">
+                                        <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-8 text-center">
+                                <h3 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight group-hover:text-white/70 transition-colors">{video.snippet.title}</h3>
+                            </div>
+                        </a>
+                    </div>
+                )}
+                <div className="mt-16 text-center">
+                    <Link href="/video" className="inline-block border border-white px-12 py-4 text-[10px] font-bold tracking-[0.3em] hover:bg-white hover:text-black transition-all uppercase">VIEW MORE VIDEOS</Link>
+                </div>
+            </section>
+
+        </main>
     );
 }
