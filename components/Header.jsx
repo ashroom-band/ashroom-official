@@ -22,11 +22,13 @@ export default function Header({ profile }) {
     ];
 
     return (
-        <header className="fixed top-0 w-full z-[100] bg-black/85 backdrop-blur-xl border-b border-white/5">
-            <div className="w-full flex items-center justify-between h-20 md:h-24 px-4 md:px-6 lg:px-10 relative z-[120]">
-                
-                {/* ロゴエリア */}
-                <Link href="/#top" onClick={() => setIsOpen(false)} className="hover:opacity-70 transition-opacity flex items-center">
+        <header className="fixed top-0 w-full z-[100]">
+            {/* ヘッダー背景（メニュー開閉に関わらず表示） */}
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-xl border-b border-white/5 z-[120]"></div>
+
+            <div className="w-full flex items-center justify-between h-20 md:h-24 px-4 md:px-6 lg:px-10 relative z-[130]">
+                {/* ロゴ */}
+                <Link href="/#top" onClick={() => setIsOpen(false)} className="hover:opacity-70 transition-opacity">
                     {profile?.band_logo?.url ? (
                         <img src={profile.band_logo.url} alt="ashroom" className="h-9 md:h-12 w-auto object-contain" />
                     ) : (
@@ -34,7 +36,7 @@ export default function Header({ profile }) {
                     )}
                 </Link>
 
-                {/* PC用ナビゲーション */}
+                {/* PCメニュー */}
                 <nav className="hidden lg:flex items-center gap-12">
                     <div className="flex items-center gap-10 text-sm md:text-lg font-bold tracking-[0.2em] shippori-mincho">
                         {menuItems.map((item) => (
@@ -45,8 +47,8 @@ export default function Header({ profile }) {
                     </div>
                     <div className="flex items-center gap-6 pl-10 border-l border-white/20">
                         {snsLinks.map((sns) => (
-                            <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="w-5 h-5 fill-current hover:text-white/50 transition-colors flex items-center justify-center">
-                                <svg viewBox="0 0 24 24" className={`w-full h-full overflow-visible ${sns.isTikTok ? 'scale-90' : ''}`}>
+                            <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="w-5 h-5 fill-current hover:text-white/50 transition-colors">
+                                <svg viewBox="0 0 24 24" className="w-full h-full overflow-visible">
                                     {sns.icon}
                                 </svg>
                             </a>
@@ -66,30 +68,32 @@ export default function Header({ profile }) {
                 </button>
             </div>
 
-            {/* モバイル用フルスクリーンオーバーレイ */}
-            <div className={`fixed inset-0 bg-[#0a0a0a] z-[110] transition-all duration-500 overflow-hidden ${isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
-                {/* pt-32（ヘッダー下からの開始位置）
-                   h-full overflow-y-auto（スクロール可能に）
-                */}
-                <nav className="h-full w-full overflow-y-auto flex flex-col items-center pt-32 pb-20">
-                    <div className="flex flex-col items-center gap-10 text-2xl font-bold tracking-[0.3em] shippori-mincho w-full">
+            {/* モバイルオーバーレイメニュー */}
+            <div className={`fixed inset-0 z-[110] transition-all duration-500 ${isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
+                {/* 背景：後ろが少し透ける暗い色 */}
+                <div className="absolute inset-0 bg-black/95 backdrop-blur-md"></div>
+                
+                {/* コンテンツエリア */}
+                <nav className="relative h-full w-full overflow-y-auto pt-32 pb-20 flex flex-col items-center">
+                    <ul className="flex flex-col items-center gap-10 w-full px-6">
                         {menuItems.map((item) => (
-                            <Link 
-                                key={item.name} 
-                                href={item.path} 
-                                onClick={() => setIsOpen(false)}
-                                className="hover:text-white/50 transition-colors py-2 block w-full text-center"
-                            >
-                                {item.name}
-                            </Link>
+                            <li key={item.name} className="w-full text-center">
+                                <Link 
+                                    href={item.path} 
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-2xl font-bold tracking-[0.3em] shippori-mincho text-white hover:text-white/50 transition-colors block py-2"
+                                >
+                                    {item.name}
+                                </Link>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                     
-                    {/* SNSアイコンエリア */}
-                    <div className="flex gap-10 mt-16 px-4">
+                    {/* SNSアイコン */}
+                    <div className="flex gap-10 mt-16 flex-wrap justify-center px-10">
                         {snsLinks.map((sns) => (
-                            <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="w-8 h-8 fill-current hover:text-white/50 transition-colors flex items-center justify-center">
-                                <svg viewBox="0 0 24 24" className="w-8 h-8 overflow-visible">
+                            <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-white/50 transition-colors">
+                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-current overflow-visible">
                                     {sns.icon}
                                 </svg>
                             </a>
