@@ -1,21 +1,34 @@
-// app/layout.js
 import './globals.css';
 import { siteConfig, snsLinks } from '../data/ashroomConfig';
+import { client } from '../lib/microcms';
+import Link from 'next/link';
 
 // SNSアイコンのコンポーネント
 const SnsIcon = ({ icon, url, header }) => (
     <a href={url} target="_blank" rel="noopener noreferrer" 
-       className={`text-white hover:text-[#E2FF00] transition-colors ${header ? 'text-base md:text-lg' : 'text-2xl'}`}>
+       className={`text-white hover:text-white/50 transition-colors ${header ? 'text-sm md:text-base' : 'text-2xl'}`}>
         <i className={icon}></i>
     </a>
 );
+
+// microCMSからプロフィール（ロゴ）を取得
+async function getProfile() {
+    try {
+        const data = await client.get({ endpoint: 'profile' });
+        return data.contents[0];
+    } catch (error) {
+        return null;
+    }
+}
 
 export const metadata = {
     title: siteConfig.siteTitle,
     description: siteConfig.description,
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+    const profile = await getProfile();
+
     return (
         <html lang="ja">
             <head>
@@ -26,43 +39,41 @@ export default function RootLayout({ children }) {
                 />
             </head>
             
-            <body className="bg-[#0a0a0a] font-sans text-white">
-                {/* --- HEADER --- */}
-                <header className="fixed top-0 w-full bg-black/60 backdrop-blur-md z-50 border-b border-white/5">
-                    <div className="max-w-[1400px] mx-auto flex items-center h-16 md:h-20 px-3 md:px-6">
-                        {/* ロゴエリア */}
-                        <h1 className="text-lg md:text-2xl font-bold text-white tracking-tighter hover:text-[#E2FF00] transition-colors flex-shrink-0">
-                            <a href="/">
-                                {siteConfig.siteTitle.replace(" Official Web Site", "")}
-                            </a>
-                        </h1>
+            <body className="bg-[#0a0a0a] font-sans text-white scroll-smooth">
+                {/* --- HEADER (固定ヘッダー) --- */}
+                <header className="fixed top-0 w-full bg-black/80 backdrop-blur-md z-50 border-b border-white/5">
+                    <div className="max-w-[1400px] mx-auto flex items-center h-16 md:h-20 px-4 md:px-8">
+                        
+                        {/* 左端：ロゴ（クリックでHOME最上部へ） */}
+                        <div className="flex-shrink-0">
+                            <Link href="/#top" className="hover:opacity-70 transition-opacity block">
+                                {profile?.band_logo?.url ? (
+                                    <img 
+                                        src={profile.band_logo.url} 
+                                        alt="ashroom" 
+                                        className="h-6 md:h-8 w-auto object-contain" 
+                                    />
+                                ) : (
+                                    <span className="text-xl font-bold tracking-tighter uppercase">ashroom</span>
+                                )}
+                            </Link>
+                        </div>
                         
                         <div className="flex-grow"></div>
                         
-                        {/* メニューエリア：ご指定の並び順で1行に表示 */}
-                        <div className="flex items-center overflow-hidden ml-2 md:ml-4">
-                            <nav className="flex items-center space-x-1 sm:space-x-3 md:space-x-6">
-                                {[
-                                    { name: 'HOME', path: '/' },
-                                    { name: 'NEWS', path: '/news' },
-                                    { name: 'SCHEDULE', path: '/schedule' },
-                                    { name: 'DISCOGRAPHY', path: '/discography' },
-                                    { name: 'VIDEO', path: '/video' },
-                                    { name: 'PROFILE', path: '/profile' },
-                                    { name: 'CONTACT', path: '/contact' }
-                                ].map((item) => (
-                                    <a 
-                                        key={item.name}
-                                        href={item.path} 
-                                        className="text-[9px] sm:text-[11px] md:text-sm font-bold text-white hover:text-[#E2FF00] transition-colors whitespace-nowrap tracking-tighter"
-                                    >
-                                        {item.name}
-                                    </a>
-                                ))}
+                        {/* 右側メニュー：ご指定の並び順 */}
+                        <div className="flex items-center gap-4 md:gap-8">
+                            <nav className="hidden lg:flex items-center space-x-6 md:space-x-8 text-[10px] font-bold tracking-[0.2em] shippori-mincho">
+                                <Link href="/news" className="hover:text-white/50 transition-colors">NEWS</Link>
+                                <Link href="/schedule" className="hover:text-white/50 transition-colors">SCHEDULE</Link>
+                                <Link href="/discography" className="hover:text-white/50 transition-colors">DISCOGRAPHY</Link>
+                                <Link href="/video" className="hover:text-white/50 transition-colors">VIDEO</Link>
+                                <Link href="/profile" className="hover:text-white/50 transition-colors">PROFILE</Link>
+                                <Link href="/contact" className="hover:text-white/50 transition-colors">CONTACT</Link>
                             </nav>
                             
-                            {/* SNSアイコン */}
-                            <div className="flex items-center space-x-1.5 md:space-x-4 flex-shrink-0 ml-1.5 sm:ml-4 pl-1.5 sm:pl-4 border-l border-white/10">
+                            {/* SNSアイコン（境界線あり） */}
+                            <div className="flex items-center space-x-4 pl-4 md:pl-8 border-l border-white/20">
                                 {snsLinks.map(link => (
                                     <SnsIcon key={link.name} icon={link.icon} url={link.url} header={true} />
                                 ))}
@@ -71,8 +82,8 @@ export default function RootLayout({ children }) {
                     </div>
                 </header>
 
-                {/* メインコンテンツ */}
-                <main className="pt-16 md:pt-20 min-h-[calc(100vh-120px)]"> 
+                {/* メインコンテンツ（アンカー用のIDを付与） */}
+                <main id="top" className="pt-16 md:pt-20 min-h-[calc(100vh-120px)]"> 
                     {children}
                 </main>
 
@@ -85,7 +96,7 @@ export default function RootLayout({ children }) {
                             ))}
                         </div>
                         <p className="text-gray-600 text-[10px] tracking-widest mt-2 uppercase text-center">
-                            &copy; {new Date().getFullYear()} {siteConfig.siteTitle.replace(" Official Web Site", "")}
+                            &copy; {new Date().getFullYear()} ashroom
                         </p>
                     </div>
                 </footer>
