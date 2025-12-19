@@ -57,7 +57,7 @@ export default async function ProfilePage() {
                             <img 
                                 src={profile.band_logo.url} 
                                 alt={profile.band_name} 
-                                className="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" 
+                                className="h-16 md:h-22 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" 
                             />
                         ) : (
                             <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter uppercase">
