@@ -37,16 +37,25 @@ export default async function Home() {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
     return (
-        <div className="bg-[#0a0a0a] min-h-screen text-white">
+        <div id="top" className="bg-[#0a0a0a] min-h-screen text-white scroll-smooth">
             
-            {/* --- HEADER NAVIGATION (ロゴを左端に配置) --- */}
-            <nav className="fixed top-0 left-0 w-full z-50 px-8 py-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-                <Link href="/">
+            {/* --- HEADER NAVIGATION (既存メニュー機能を保持) --- */}
+            <nav className="fixed top-0 left-0 w-full z-50 px-6 md:px-10 py-6 flex justify-between items-center bg-gradient-to-b from-black/90 to-transparent backdrop-blur-[2px]">
+                {/* ロゴ：クリックで最上部へ */}
+                <Link href="#top" className="transition-opacity hover:opacity-70">
                     {profile?.band_logo?.url && (
-                        <img src={profile.band_logo.url} alt="ashroom" className="h-8 md:h-10 w-auto object-contain" />
+                        <img src={profile.band_logo.url} alt="ashroom" className="h-6 md:h-8 w-auto object-contain" />
                     )}
                 </Link>
-                {/* 既存のメニューなどが必要な場合はここにLinkを追加 */}
+                
+                {/* 右側メニュー（既存のパスに合わせて調整してください） */}
+                <div className="flex gap-6 md:gap-10 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase shippori-mincho">
+                    <Link href="/profile" className="hover:text-white/60 transition-colors">PROFILE</Link>
+                    <Link href="/news" className="hover:text-white/60 transition-colors">NEWS</Link>
+                    <Link href="/schedule" className="hover:text-white/60 transition-colors">SCHEDULE</Link>
+                    <Link href="/discography" className="hover:text-white/60 transition-colors">DISCOGRAPHY</Link>
+                    <Link href="/video" className="hover:text-white/60 transition-colors">VIDEO</Link>
+                </div>
             </nav>
 
             {/* --- HERO SECTION --- */}
@@ -64,7 +73,7 @@ export default async function Home() {
 
                 <div className="relative z-10 text-center px-4 w-full">
                     {profile?.tagline && (
-                        <h1 className="text-2xl md:text-5xl font-extrabold tracking-tighter text-white shippori-mincho italic drop-shadow-[0_0_20px_rgba(0,0,0,0.8)] whitespace-nowrap overflow-hidden">
+                        <h1 className="text-xl md:text-4xl font-bold tracking-tight text-white/95 shippori-mincho italic drop-shadow-[0_0_15px_rgba(0,0,0,0.7)] whitespace-nowrap">
                             {profile.tagline}
                         </h1>
                     )}
