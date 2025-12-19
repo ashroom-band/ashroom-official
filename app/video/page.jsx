@@ -1,13 +1,20 @@
-// サーバー側で取得するための環境変数名に変更
 const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
 
-export const revalidate = 0; // テストのため一旦キャッシュを無効化
+// どちらが欠けているか判別する関数
+function checkMissing() {
+  let missing = [];
+  if (!API_KEY) missing.push("YOUTUBE_API_KEY");
+  if (!CHANNEL_ID) missing.push("YOUTUBE_CHANNEL_ID");
+  return missing.length > 0 ? missing.join(" & ") : null;
+}
+
+export const revalidate = 0;
 
 async function getLatestVideos() {
-  if (!API_KEY || !CHANNEL_ID) {
-    console.error("YouTube API Key or Channel ID is missing");
-    return { error: "API configuration missing", items: [] };
+  const missing = checkMissing();
+  if (missing) {
+    return { error: `Missing Configuration: ${missing}`, items: [] };
   }
 
   try {
