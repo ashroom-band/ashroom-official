@@ -35,23 +35,44 @@ async function getDiscography() {
 }
 
 async function getLatestVideo() {
-    const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
-    const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
-    if (!API_KEY || !CHANNEL_ID) return null;
+    // サーバーサイドでのみ実行されるように、プロセスを確認
+    const API_KEY = process.env.YOUTUBE_API_KEY; 
+    const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
+    
+    // キーがない場合は、エラーを出さずにnullを返す（これ重要）
+    if (!API_KEY || !CHANNEL_ID) {
+        console.warn("YouTube API Key or Channel ID is missing.");
+        return null;
+    }
 
     try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`);
+        const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`,
+            { next: { revalidate: 3600 } } // キャッシュの設定
+        );
+        
+        if (!res.ok) return null;
         const data = await res.json();
-        const videoIds = data.items.map(item => item.id.videoId).join(',');
-        const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`);
+        
+        if (!data.items || data.items.length === 0) return null;
+
+        const videoIds = data.items.map(item => item.id.videoId).filter(Boolean).join(',');
+        const detailRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
+        );
         const detailData = await detailRes.json();
 
-        return detailData.items.filter(item => {
+        if (!detailData.items) return null;
+
+        return detailData.items.find(item => {
             const duration = item.contentDetails.duration;
             const title = item.snippet.title.toLowerCase();
             return (duration.includes('M') || duration.includes('H')) && !title.includes('#shorts');
-        })[0]; // 最新1件のみ
-    } catch (e) { return null; }
+        });
+    } catch (e) {
+        console.error("YouTube Fetch Error:", e);
+        return null;
+    }
 }
 
 export default async function HomePage() {
