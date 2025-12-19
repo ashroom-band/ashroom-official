@@ -1,43 +1,57 @@
-// app/news/page.jsx
+import Link from 'next/link';
+import { client } from '../../lib/microcms';
 
-import { latestNews } from '../../data/ashroomConfig';
+export const dynamic = 'force-dynamic';
 
-// 共通コンポーネント定義 (ページタイトル用)
-const PageTitle = ({ title }) => (
-    <div className="pt-16 pb-8 border-b border-gray-700 mb-10 text-center">
-        <h2 className="text-4xl font-extrabold text-white tracking-widest">{title}</h2>
-    </div>
-);
+export default async function NewsPage() {
+    const data = await client.get({
+        endpoint: 'news',
+        queries: { orders: '-published' } // 日付の降順（新しい順）
+    });
+    const newsItems = data.contents;
 
-export default function NewsPage() {
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-            <PageTitle title="NEWS" />
-            
-            <ul className="space-y-6">
-                {latestNews.map((item, index) => (
-                    <li key={index} className="pb-4 border-b border-gray-800">
-                        <a href={item.link} className="block hover:bg-gray-800 p-3 -m-3 rounded transition-colors">
-                            {/* 修正: 日付をHOMEのスタイルに統一 */}
-                            <p className="text-sm text-gray-400 font-bold">{item.date} {index === 0 && <span className="text-ash-accent font-bold ml-2">NEW!</span>}</p>
-                            {/* 修正: タイトルをHOMEのスタイルに統一 */}
-                            <p className="text-base text-white font-light mt-1 leading-snug">{item.title}</p>
-                        </a>
-                    </li>
-                ))}
-                {/* ダミーのニュースを追加 */}
-                <li className="pb-4 border-b border-gray-800">
-                    <a href="#" className="block hover:bg-gray-800 p-3 -m-3 rounded transition-colors">
-                        <p className="text-sm text-gray-400 font-bold">2025.11.01</p>
-                        <p className="text-base text-white font-light mt-1 leading-snug">ashroom official web site リニューアル</p>
-                    </a>
-                </li>
-            </ul>
+        <main className="min-h-screen bg-[#0a0a0a] text-white pb-24 px-4">
+            <div className="max-w-4xl mx-auto">
+                <div className="pt-24 pb-12 border-b border-white/5 mb-16 text-center">
+                    <h1 className="text-4xl font-bold tracking-tight uppercase shippori-mincho">NEWS</h1>
+                </div>
 
-            {/* 今後のページング機能のためのスペース */}
-            <div className="text-center mt-12">
-                <p className="text-gray-500">--- END OF LIST ---</p>
+                <div className="divide-y divide-white/5">
+                    {newsItems.map((item) => (
+                        <Link 
+                            key={item.id} 
+                            href={`/news/${item.id}`}
+                            className="group flex flex-col md:flex-row md:items-center py-10 hover:bg-white/[0.02] transition-all px-4"
+                        >
+                            {/* 日付（publishedを参照）とカテゴリ */}
+                            <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0">
+                                <span className="text-sm font-light tracking-[0.2em] text-gray-500 font-mono">
+                                    {item.published ? item.published.replace(/-/g, '.') : ''}
+                                </span>
+                                {item.category && (
+                                    <span className="text-[10px] border border-white/20 px-3 py-1 tracking-widest text-white/60 uppercase">
+                                        {item.category}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* 見出し */}
+                            <div className="flex-grow">
+                                <h2 className="text-xl md:text-2xl font-medium tracking-tight group-hover:text-gray-400 transition-colors">
+                                    {item.title}
+                                </h2>
+                            </div>
+
+                            <div className="hidden md:block opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
             </div>
-        </div>
+        </main>
     );
 }
