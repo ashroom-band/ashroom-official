@@ -1,38 +1,77 @@
 import Link from 'next/link';
 import { client } from '../lib/microcms';
+import HeroSlider from '../components/HeroSlider'; // スライダーコンポーネント
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // --- Data Fetching ---
+
 async function getNews() {
-    const data = await client.get({ endpoint: 'news', queries: { orders: '-published', limit: 2 } });
-    return data.contents || [];
+    try {
+        const data = await client.get({ endpoint: 'news', queries: { orders: '-published', limit: 2 } });
+        return data.contents || [];
+    } catch (e) { return []; }
 }
 
 async function getSchedules() {
-    const data = await client.get({ 
-        endpoint: 'schedule', 
-        queries: { orders: 'date', filters: `date[greater_than]${new Date().toISOString()}`, limit: 2 } 
-    });
-    return data.contents || [];
+    try {
+        const data = await client.get({ 
+            endpoint: 'schedule', 
+            queries: { orders: 'date', filters: `date[greater_than]${new Date().toISOString()}`, limit: 2 } 
+        });
+        return data.contents || [];
+    } catch (e) { return []; }
 }
 
 async function getDiscography() {
-    const data = await client.get({ endpoint: 'discography', queries: { orders: '-release_date', limit: 1 } });
-    return data.contents || [];
+    try {
+        const data = await client.get({ endpoint: 'discography', queries: { orders: '-release_date', limit: 1 } });
+        return data.contents || [];
+    } catch (e) { return []; }
 }
 
 async function getLatestVideo() {
     const API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY;
     const CHANNEL_ID = process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID || process.env.YOUTUBE_CHANNEL_ID;
+    
     if (!API_KEY || !CHANNEL_ID) return null;
+
     try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=3&order=date&type=video&key=${API_KEY}`);
+        // 1. 最新の10件を取得
+        const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`
+        );
         const data = await res.json();
         if (!data.items || data.items.length === 0) return null;
-        return data.items[0];
-    } catch (e) { return null; }
+
+        // 2. 動画の詳細（長さ）を取得してShortsを除外
+        const videoIds = data.items.map(item => item.id.videoId).join(',');
+        const detailRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
+        );
+        const detailData = await detailRes.json();
+
+        // 長尺動画（ISO 8601形式のdurationにMまたはHが含まれるもの）かつタイトルに#shortsがないものを探す
+        const longVideo = detailData.items.find(item => {
+            const duration = item.contentDetails.duration;
+            const title = item.snippet.title.toLowerCase();
+            const isLong = duration.includes('M') || duration.includes('H');
+            const isNotShortsTag = !title.includes('#shorts');
+            return isLong && isNotShortsTag;
+        });
+
+        if (!longVideo) return null;
+
+        return {
+            id: longVideo.id,
+            title: longVideo.snippet.title,
+            thumbnail: longVideo.snippet.thumbnails.maxres?.url || longVideo.snippet.thumbnails.high.url
+        };
+    } catch (e) {
+        console.error("YouTube Fetch Error:", e);
+        return null;
+    }
 }
 
 export default async function HomePage() {
@@ -43,12 +82,17 @@ export default async function HomePage() {
         getLatestVideo()
     ]);
 
-    // 曜日のマッピング（安全な表示のため）
     const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
     return (
-        <main className="bg-[#0a0a0a] text-white space-y-32 pb-32 pt-20">
+        <main className="bg-[#0a0a0a] text-white space-y-32 pb-32">
             
+            {/* HERO SECTION (SLIDER) */}
+            <section className="h-screen w-full relative">
+                <HeroSlider />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a]" />
+            </section>
+
             {/* NEWS SECTION */}
             <section className="px-4 max-w-4xl mx-auto w-full">
                 <Link href="/news" className="block text-center mb-16 group">
@@ -82,7 +126,7 @@ export default async function HomePage() {
                     <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho group-hover:opacity-50 transition-all">SCHEDULE</h2>
                 </Link>
                 <div className="space-y-20">
-                    {schedules.map((item) => {
+                    {schedules.length > 0 ? schedules.map((item) => {
                         const d = new Date(item.date);
                         const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
                         const dayStr = dayMap[d.getDay()];
@@ -110,7 +154,9 @@ export default async function HomePage() {
                                 </div>
                             </div>
                         );
-                    })}
+                    }) : (
+                        <p className="text-center opacity-40 text-sm tracking-[0.3em]">NO SCHEDULED LIVE</p>
+                    )}
                 </div>
             </section>
 
@@ -152,18 +198,20 @@ export default async function HomePage() {
                 <Link href="/video" className="block text-center mb-16 group">
                     <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase group-hover:opacity-50 transition-all">VIDEO</h2>
                 </Link>
-                {video && (
-                    <a href={`https://www.youtube.com/watch?v=${video.id.videoId}`} target="_blank" rel="noopener noreferrer" className="block group">
+                {video ? (
+                    <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer" className="block group">
                         <div className="relative aspect-video overflow-hidden border border-white/10 shadow-2xl">
-                            <img src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} alt={video.snippet.title} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 flex items-center justify-center">
+                            <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-colors">
                                 <div className="w-20 h-14 bg-[#FF0000] rounded-xl flex items-center justify-center opacity-90 transition-transform group-hover:scale-110">
                                     <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1"></div>
                                 </div>
                             </div>
                         </div>
-                        <h3 className="mt-8 text-2xl md:text-3xl font-bold text-center group-hover:text-white/70 transition-colors">{video.snippet.title}</h3>
+                        <h3 className="mt-8 text-2xl md:text-3xl font-bold text-center group-hover:text-white/70 transition-colors leading-tight px-4">{video.title}</h3>
                     </a>
+                ) : (
+                    <p className="text-center opacity-40">NO VIDEO AVAILABLE</p>
                 )}
             </section>
 
