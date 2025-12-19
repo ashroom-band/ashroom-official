@@ -21,18 +21,15 @@ export default async function NewsPage() {
 
                 <div className="divide-y divide-white/5">
                     {newsItems.map((item) => {
-                        // 日付のズレと Invalid Date を確実に回避する処理
-                        let dateObj;
-                        if (item.published) {
-                            const parts = item.published.split('-'); // "2025-12-19" を分割
-                            // new Date(year, monthIndex, day) ※monthIndexは0から始まるので -1
-                            dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                        } else {
-                            dateObj = new Date();
-                        }
+                        // 【修正】SCHEDULE等と同様の、最もズレないロジック
+                        // 1. 文字列をそのままドット区切りに置換（計算しないのでズレない）
+                        const dateStr = item.published ? item.published.replace(/-/g, '.') : '';
                         
-                        const dateStr = dateObj.toLocaleDateString('ja-JP').replace(/\//g, '.');
-                        const dayStr = days[dateObj.getDay()];
+                        // 2. 曜日取得時のみ、ハイフンをスラッシュに置換してDateに渡す
+                        // これによりブラウザが日本時間(JST)として正しく解釈し、Invalid Dateも防ぎます
+                        const dayStr = item.published 
+                            ? days[new Date(item.published.replace(/-/g, '/')).getDay()] 
+                            : '';
 
                         return (
                             <Link 
@@ -40,6 +37,7 @@ export default async function NewsPage() {
                                 href={`/news/${item.id}`}
                                 className="group flex flex-col md:flex-row md:items-center py-10 hover:bg-white/[0.02] transition-all px-4"
                             >
+                                {/* 日付とカテゴリ */}
                                 <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0">
                                     <div className="flex flex-col">
                                         <span className="text-lg font-bold tracking-widest text-white leading-none">
@@ -53,12 +51,14 @@ export default async function NewsPage() {
                                     )}
                                 </div>
 
+                                {/* 見出し：ホバー時に font-semibold で少し太くなる */}
                                 <div className="flex-grow">
                                     <h2 className="text-base md:text-lg font-normal tracking-wide text-gray-300 group-hover:text-white group-hover:font-semibold transition-all duration-300">
                                         {item.title}
                                     </h2>
                                 </div>
 
+                                {/* 矢印アイコン */}
                                 <div className="hidden md:block opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
                                         <path d="M9 18l6-6-6-6" />
