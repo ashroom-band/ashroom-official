@@ -3,8 +3,6 @@ import { client } from '../../lib/microcms';
 
 export const dynamic = 'force-dynamic';
 
-const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-
 export default async function NewsPage() {
     const data = await client.get({
         endpoint: 'news',
@@ -21,15 +19,22 @@ export default async function NewsPage() {
 
                 <div className="divide-y divide-white/5">
                     {newsItems.map((item) => {
-                        // 【修正】SCHEDULE等と同様の、最もズレないロジック
-                        // 1. 文字列をそのままドット区切りに置換（計算しないのでズレない）
-                        const dateStr = item.published ? item.published.replace(/-/g, '.') : '';
+                        // SCHEDULEと同じ日付処理ロジック
+                        const dateObj = item.published ? new Date(item.published) : null;
                         
-                        // 2. 曜日取得時のみ、ハイフンをスラッシュに置換してDateに渡す
-                        // これによりブラウザが日本時間(JST)として正しく解釈し、Invalid Dateも防ぎます
-                        const dayStr = item.published 
-                            ? days[new Date(item.published.replace(/-/g, '/')).getDay()] 
-                            : '';
+                        const dateDisplay = dateObj ? dateObj.toLocaleDateString('ja-JP', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            timeZone: 'Asia/Tokyo'
+                        }).replace(/\//g, '.') : '';
+
+                        const dayIndex = dateObj ? new Intl.DateTimeFormat('en-US', { 
+                            weekday: 'short', 
+                            timeZone: 'Asia/Tokyo' 
+                        }).format(dateObj).toUpperCase() : '';
+                        
+                        const dayDisplay = dayIndex ? `[${dayIndex}]` : '';
 
                         return (
                             <Link 
@@ -41,7 +46,7 @@ export default async function NewsPage() {
                                 <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0">
                                     <div className="flex flex-col">
                                         <span className="text-lg font-bold tracking-widest text-white leading-none">
-                                            {dateStr} <span className="text-xs ml-1">[{dayStr}]</span>
+                                            {dateDisplay} <span className="text-xs ml-1 font-mono">{dayDisplay}</span>
                                         </span>
                                     </div>
                                     {item.category && (
@@ -51,14 +56,13 @@ export default async function NewsPage() {
                                     )}
                                 </div>
 
-                                {/* 見出し：ホバー時に font-semibold で少し太くなる */}
+                                {/* 見出し */}
                                 <div className="flex-grow">
                                     <h2 className="text-base md:text-lg font-normal tracking-wide text-gray-300 group-hover:text-white group-hover:font-semibold transition-all duration-300">
                                         {item.title}
                                     </h2>
                                 </div>
 
-                                {/* 矢印アイコン */}
                                 <div className="hidden md:block opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
                                         <path d="M9 18l6-6-6-6" />
