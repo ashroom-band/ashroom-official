@@ -3,7 +3,6 @@ import { client } from '../../lib/microcms';
 
 export const dynamic = 'force-dynamic';
 
-// 曜日の配列
 const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 export default async function NewsPage() {
@@ -22,7 +21,8 @@ export default async function NewsPage() {
 
                 <div className="divide-y divide-white/5">
                     {newsItems.map((item) => {
-                        const dateObj = new Date(item.published);
+                        // 日付のズレを解消：文字列のまま解釈させるか、T00:00:00を付加
+                        const dateObj = new Date(`${item.published}T00:00:00`);
                         const dateStr = dateObj.toLocaleDateString('ja-JP').replace(/\//g, '.');
                         const dayStr = days[dateObj.getDay()];
 
@@ -32,7 +32,7 @@ export default async function NewsPage() {
                                 href={`/news/${item.id}`}
                                 className="group flex flex-col md:flex-row md:items-center py-10 hover:bg-white/[0.02] transition-all px-4"
                             >
-                                {/* 日付とカテゴリ：SCHEDULEのスタイルを継承 */}
+                                {/* 日付とカテゴリ */}
                                 <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0">
                                     <div className="flex flex-col">
                                         <span className="text-lg font-bold tracking-widest text-white leading-none">
@@ -46,9 +46,9 @@ export default async function NewsPage() {
                                     )}
                                 </div>
 
-                                {/* 見出し：サイズを下げ、標準の太さに変更 */}
+                                {/* 見出し：ホバー時に少し太く、色を白く */}
                                 <div className="flex-grow">
-                                    <h2 className="text-base md:text-lg font-normal tracking-wide text-gray-200 group-hover:text-white transition-colors">
+                                    <h2 className="text-base md:text-lg font-normal tracking-wide text-gray-300 group-hover:text-white group-hover:font-semibold transition-all duration-300">
                                         {item.title}
                                     </h2>
                                 </div>
