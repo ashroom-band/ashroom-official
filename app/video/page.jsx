@@ -1,55 +1,46 @@
 const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
 
-// どちらが欠けているか判別する関数
-function checkMissing() {
-  let missing = [];
-  if (!API_KEY) missing.push("YOUTUBE_API_KEY");
-  if (!CHANNEL_ID) missing.push("YOUTUBE_CHANNEL_ID");
-  return missing.length > 0 ? missing.join(" & ") : null;
-}
-
-export const revalidate = 0;
+export const revalidate = 3600; // 1時間に1回更新
 
 async function getLatestVideos() {
-  const missing = checkMissing();
-  if (missing) {
-    return { error: `Missing Configuration: ${missing}`, items: [] };
+  if (!API_KEY || !CHANNEL_ID) {
+    return { error: "API configuration missing", items: [] };
   }
 
   try {
-    // 1. まず動画リストを取得
+    // 1. 検索件数を最大（50件）まで増やして、過去の動画まで探せるようにする
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=15&order=date&type=video&key=${API_KEY}`,
-      { cache: 'no-store' }
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=50&order=date&type=video&key=${API_KEY}`
     );
     const data = await res.json();
     
-    if (data.error) {
-      console.error("YouTube API Error:", data.error);
-      return { error: data.error.message, items: [] };
-    }
-
+    if (data.error) return { error: data.error.message, items: [] };
     if (!data.items || data.items.length === 0) return { items: [] };
 
     // 2. 詳細（長さ）を取得
     const videoIds = data.items.map(item => item.id.videoId).join(',');
     const detailRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`,
-      { cache: 'no-store' }
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
     );
     const detailData = await detailRes.json();
 
     // 3. フィルタリング（Shortsを除外して5件）
     const filtered = detailData.items.filter(item => {
       const duration = item.contentDetails.duration;
-      // 'M'(分) または 'H'(時) が含まれるもの＝長尺動画
-      return duration.includes('M') || duration.includes('H');
-    }).slice(0, 5);
+      const title = item.snippet.title.toLowerCase();
+      
+      // Shortsではない判定：
+      // ・durationに M(分) か H(時) が含まれる
+      // ・かつ、タイトルに #shorts が含まれない
+      const isLongVideo = duration.includes('M') || duration.includes('H');
+      const isNotShortsTag = !title.includes('#shorts');
+      
+      return isLongVideo && isNotShortsTag;
+    }).slice(0, 5); // 確実に5本取り出す
 
     return { items: filtered };
   } catch (error) {
-    console.error("Fetch Error:", error);
     return { error: "Failed to fetch data", items: [] };
   }
 }
@@ -67,15 +58,9 @@ export default async function VideoPage() {
           </h1>
         </div>
 
-        {result.error && (
-          <div className="mb-8 p-4 bg-red-900/20 border border-red-500/50 text-red-200 text-xs font-mono">
-            Error: {result.error}
-          </div>
-        )}
-
         {videos.length === 0 ? (
-          <div className="py-40 text-center opacity-40 text-sm tracking-widest">
-            {result.error ? "COULD NOT LOAD VIDEOS." : "NO VIDEOS FOUND."}
+          <div className="py-40 text-center opacity-40 text-sm tracking-widest font-sans">
+            NO VIDEOS FOUND.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
@@ -130,7 +115,7 @@ export default async function VideoPage() {
             href={`https://www.youtube.com/channel/${CHANNEL_ID}`} 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="inline-block border border-white px-12 py-4 text-[10px] font-bold tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all duration-500 uppercase"
+            className="inline-block border border-white px-12 py-4 text-[10px] font-bold tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all duration-500 uppercase font-sans"
           >
             VIEW MORE ON YOUTUBE
           </a>
