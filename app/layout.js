@@ -1,9 +1,8 @@
 import './globals.css';
 import { siteConfig } from '../data/ashroomConfig';
 import { client } from '../lib/microcms';
-import Header from '../components/Header'; // 新しく作成するコンポーネント
+import Header from '../components/Header';
 
-// microCMSからプロフィールを取得
 async function getProfile() {
     try {
         const data = await client.get({ endpoint: 'profile' });
@@ -29,13 +28,11 @@ export default async function RootLayout({ children }) {
                     rel="stylesheet"
                 />
             </head>
-            <body className="bg-[#0a0a0a] font-sans text-white">
-                {/* ヘッダーは状態管理(開閉)が必要なため、
-                  クライアントコンポーネントとして外部ファイル化します
-                */}
+            <body className="bg-[#0a0a0a] font-sans text-white antialiased">
                 <Header profile={profile} />
 
-                <main id="top" className="min-h-[calc(100vh-120px)]"> 
+                {/* ヘッダーの高さ分、少し上部マージンを調整 */}
+                <main id="top" className="min-h-screen"> 
                     {children}
                 </main>
 
