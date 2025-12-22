@@ -6,16 +6,13 @@ export const revalidate = 0;
 
 // --- Data Fetching ---
 
-// ① メインビジュアル用 (PROFILEエンドポイント)
 async function getProfile() {
   try {
     const data = await client.get({ endpoint: 'profile' });
-    // RootLayoutに合わせて contents[0] を取得
     return data.contents[0] || null;
   } catch (e) { return null; }
 }
 
-// ③ NEWS (最新2件)
 async function getNews() {
   try {
     const data = await client.get({ endpoint: 'news', queries: { orders: '-publishedAt', limit: 2 } });
@@ -23,7 +20,6 @@ async function getNews() {
   } catch (e) { return []; }
 }
 
-// ④ SCHEDULE (最新1件)
 async function getSchedules() {
   try {
     const data = await client.get({
@@ -34,7 +30,6 @@ async function getSchedules() {
   } catch (e) { return []; }
 }
 
-// ⑥ DISCOGRAPHY (最新1件)
 async function getDiscography() {
   try {
     const data = await client.get({ endpoint: 'discography', queries: { orders: '-publishedAt', limit: 1 } });
@@ -42,7 +37,6 @@ async function getDiscography() {
   } catch (e) { return []; }
 }
 
-// ⑤ VIDEO (YouTube API)
 async function getLatestVideo() {
   const API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY;
   const CHANNEL_ID = process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID || process.env.YOUTUBE_CHANNEL_ID;
@@ -77,23 +71,19 @@ export default async function HomePage() {
   return (
     <main className="bg-[#0a0a0a] text-white pb-32 space-y-32">
       
-      {/* ① メインビジュアル (PROFILEの画像を使用) */}
+      {/* ① メインビジュアル (ASHROOMの文字を消し、taglineを1.5倍に強調) */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
         {profile?.artist_photo?.url && (
           <div className="absolute inset-0 z-0">
             <img 
               src={profile.artist_photo.url} 
               alt="ashroom" 
-              className="w-full h-full object-cover brightness-[0.4] scale-105 animate-subtle-zoom" 
+              className="w-full h-full object-cover brightness-[0.3] scale-105 animate-subtle-zoom" 
             />
           </div>
         )}
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-6xl md:text-8xl font-bold tracking-[0.3em] uppercase shippori-mincho mb-4 drop-shadow-2xl">
-            ASHROOM
-          </h1>
-          {/* タグライン：白字・斜体 */}
-          <p className="text-lg md:text-xl font-light italic text-white tracking-[0.4em] opacity-90">
+        <div className="relative z-10 text-center px-4 max-w-5xl">
+          <p className="text-3xl md:text-5xl font-bold italic text-white tracking-[0.25em] drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] leading-relaxed">
             {profile?.tagline || "Alternative Rock from Chiba/Tokyo"}
           </p>
         </div>
@@ -160,7 +150,27 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* ⑤ VIDEO (最新1件) */}
+      {/* ⑤ DISCOGRAPHY (ビデオの前に移動) */}
+      <section className="px-4 max-w-4xl mx-auto w-full">
+        <div className="flex justify-between items-end mb-12">
+          <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">DISCOGRAPHY</h2>
+          <Link href="/discography" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
+        </div>
+        {latestDisco && (
+          <div className="flex flex-col md:flex-row gap-12 items-center bg-zinc-900/20 p-8 border border-white/5">
+            <img src={latestDisco.jacket?.url} alt={latestDisco.title} className="w-full md:w-80 shadow-2xl border border-white/10" />
+            <div className="space-y-6 text-center md:text-left">
+              <h3 className="text-2xl md:text-3xl font-bold">{latestDisco.title}</h3>
+              <p className="text-sm text-white/60 line-clamp-3 leading-relaxed">
+                {latestDisco.description?.replace(/<[^>]*>?/gm, '')}
+              </p>
+              <Link href="/discography" className="inline-block px-8 py-3 border border-white/20 text-[10px] tracking-[0.4em] hover:bg-white hover:text-black transition-all">VIEW RELEASES</Link>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ⑥ VIDEO (最後に移動) */}
       <section className="px-4 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase">VIDEO</h2>
@@ -176,24 +186,6 @@ export default async function HomePage() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
               ></iframe>
-          </div>
-        )}
-      </section>
-
-      {/* ⑥ DISCOGRAPHY (最新1件) */}
-      <section className="px-4 max-w-4xl mx-auto w-full">
-        <div className="flex justify-between items-end mb-12">
-          <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">DISCOGRAPHY</h2>
-          <Link href="/discography" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
-        </div>
-        {latestDisco && (
-          <div className="flex flex-col md:flex-row gap-12 items-center bg-zinc-900/20 p-8 border border-white/5">
-            <img src={latestDisco.jacket?.url} alt={latestDisco.title} className="w-full md:w-80 shadow-2xl" />
-            <div className="space-y-6 text-center md:text-left">
-              <h3 className="text-3xl font-bold">{latestDisco.title}</h3>
-              <p className="text-sm text-white/60 line-clamp-3">{latestDisco.description?.replace(/<[^>]*>?/gm, '')}</p>
-              <Link href="/discography" className="inline-block px-8 py-3 border border-white/20 text-[10px] tracking-[0.4em] hover:bg-white hover:text-black transition-all">VIEW RELEASES</Link>
-            </div>
           </div>
         )}
       </section>
