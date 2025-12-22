@@ -267,23 +267,70 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* ⑤ DISCOGRAPHY */}
+      {/* ⑤ DISCOGRAPHY (最新1件を横並びで表示) */}
       <section className="px-4 max-w-4xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">DISCOGRAPHY</h2>
           <Link href="/discography" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
         </div>
-        {latestDisco && (
-          <div className="flex flex-col md:flex-row gap-12 items-center bg-zinc-900/20 p-8 border border-white/5">
-            <img src={latestDisco.jacket?.url} alt={latestDisco.title} className="w-full md:w-80 shadow-2xl border border-white/10" />
-            <div className="space-y-6 text-center md:text-left">
-              <h3 className="text-2xl md:text-3xl font-bold">{latestDisco.title}</h3>
-              <p className="text-sm text-white/60 line-clamp-3 leading-relaxed">
-                {latestDisco.description?.replace(/<[^>]*>?/gm, '')}
-              </p>
-              <Link href="/discography" className="inline-block px-8 py-3 border border-white/20 text-[10px] tracking-[0.4em] hover:bg-white hover:text-black transition-all">VIEW RELEASES</Link>
+
+        {latestDisco ? (() => {
+          const dateObj = latestDisco.release_date ? new Date(latestDisco.release_date) : null;
+          const dateDisplay = dateObj ? new Intl.DateTimeFormat('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            timeZone: 'Asia/Tokyo'
+          }).format(dateObj).replace(/\//g, '.') : '';
+
+          return (
+            <div className="flex flex-col md:flex-row gap-12 items-start bg-zinc-900/10 p-4 md:p-0 border border-white/5 md:border-none">
+              {/* 左側：ジャケット画像 */}
+              <div className="w-full md:w-80 shrink-0 shadow-2xl border border-white/10 aspect-square overflow-hidden bg-white/5">
+                {latestDisco.jacket ? (
+                  <img src={latestDisco.jacket.url} alt={latestDisco.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px] tracking-widest uppercase">No Image</div>
+                )}
+              </div>
+
+              {/* 右側：作品情報 */}
+              <div className="flex-grow w-full space-y-5">
+                <div className="flex justify-between items-baseline border-b border-white/10 pb-2">
+                  <span className="text-[13px] tracking-[0.2em] text-white font-bold uppercase">{latestDisco.type}</span>
+                  <span className="text-[13px] font-mono text-white tracking-tighter">
+                    {dateDisplay}
+                  </span>
+                </div>
+                
+                <h3 className="text-3xl font-bold tracking-wider text-white">{latestDisco.title}</h3>
+                
+                {/* 解説（リッチエディタ対応） */}
+                {latestDisco.description && (
+                  <div 
+                    className="text-sm text-white/80 leading-relaxed mt-4 prose prose-invert max-w-none line-clamp-4 md:line-clamp-none"
+                    dangerouslySetInnerHTML={{ __html: latestDisco.description }}
+                  />
+                )}
+
+                {/* リンクボタン */}
+                {latestDisco.link_url && (
+                  <div className="pt-4">
+                    <a 
+                      href={latestDisco.link_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block w-full md:w-fit md:px-12 py-4 border border-white text-[10px] tracking-[0.4em] text-center text-white hover:bg-white hover:text-black transition-all duration-500 uppercase"
+                    >
+                      LISTEN / BUY
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          );
+        })() : (
+          <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho text-center py-10">No discography found.</p>
         )}
       </section>
 
