@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { client } from '../lib/microcms';
 
-export const revalidate = 3600; // 1時間キャッシュ（YouTubeクォータ節約のため）
+export const revalidate = 3600; // 1時間キャッシュ
 
 // --- Data Fetching ---
 
@@ -78,25 +78,19 @@ export default async function HomePage() {
   const latestSchedule = schedules[0];
   const latestDisco = disco[0];
 
-  // スライダー用アイテムの整理
+  // スライダーアイテムの定義（初期表示：フライヤーを先頭に）
   const sliderItems = [
     {
       img: latestSchedule?.flyer?.url,
-      label: 'Latest Flyer',
       href: '/schedule',
-      aspect: 'aspect-[3/4]'
     },
     {
       img: latestDisco?.jacket?.url,
-      label: 'Latest Release',
       href: '/discography',
-      aspect: 'aspect-square'
     },
     {
       img: video?.snippet?.thumbnails?.maxres?.url || video?.snippet?.thumbnails?.high?.url,
-      label: 'Latest Video',
       href: '/video',
-      aspect: 'aspect-video'
     }
   ];
 
@@ -122,50 +116,58 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トップのトピックスライダー */}
-      <section className="px-4 max-w-6xl mx-auto w-full mb-32 relative group">
-        <div id="slider" className="flex overflow-x-auto snap-x snap-mandatory gap-8 pb-4 no-scrollbar scroll-smooth">
+      {/* ② トピックスライダー（全面1枚表示） */}
+      <section className="px-4 max-w-2xl mx-auto w-full mb-32 relative group">
+        {/* コンテナを1枚分のサイズに固定 */}
+        <div 
+          id="topic-slider" 
+          className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth w-full aspect-[4/5] bg-white/5 border border-white/10 shadow-2xl"
+        >
           {sliderItems.map((item, idx) => (
-            <div key={idx} className="min-w-[85%] md:min-w-[30%] snap-center flex flex-col items-center">
-              <Link href={item.href} className="w-full group/item">
-                <div className={`w-full ${item.aspect} flex items-center justify-center bg-white/5 border border-white/10 shadow-2xl transition-transform duration-500 group-hover/item:scale-[1.02]`}>
-                  {item.img ? (
-                    <img 
-                      src={item.img} 
-                      alt={item.label} 
-                      className="max-w-full max-h-full object-contain" 
-                    />
-                  ) : (
-                    <div className="aspect-[4/3] w-full flex items-center justify-center">
-                      <span className="text-[10px] tracking-[0.4em] text-white/20 uppercase font-bold italic">No Image</span>
-                    </div>
-                  )}
-                </div>
-                <p className="mt-6 text-[10px] tracking-[0.3em] text-center opacity-40 uppercase font-bold group-hover/item:opacity-100 transition-opacity">
-                  {item.label}
-                </p>
+            <div key={idx} className="min-w-full h-full snap-center flex items-center justify-center">
+              <Link href={item.href} className="w-full h-full block relative group/item">
+                {item.img ? (
+                  <img 
+                    src={item.img} 
+                    alt="" 
+                    className="w-full h-full object-contain p-4 transition-transform duration-700 group-hover/item:scale-[1.03]" 
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-[10px] tracking-[0.4em] text-white/20 uppercase font-bold italic">No Image</span>
+                  </div>
+                )}
               </Link>
             </div>
           ))}
         </div>
 
-        {/* 左右のナビゲーションボタン */}
+        {/* 左ボタン < */}
         <button 
-          onClick="document.getElementById('slider').scrollBy({left: -400, behavior: 'smooth'})"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block"
+          onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: -s.offsetWidth, behavior: 'smooth'})"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full md:-translate-x-20 opacity-40 hover:opacity-100 transition-opacity p-4 hidden md:block"
         >
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-white/40 hover:text-white transition-colors">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
+
+        {/* 右ボタン > */}
         <button 
-          onClick="document.getElementById('slider').scrollBy({left: 400, behavior: 'smooth'})"
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block"
+          onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: s.offsetWidth, behavior: 'smooth'})"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full md:translate-x-20 opacity-40 hover:opacity-100 transition-opacity p-4 hidden md:block"
         >
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-white/40 hover:text-white transition-colors">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
             <path d="M9 18l6-6 6-6" transform="rotate(180 12 12)" />
           </svg>
         </button>
+
+        {/* スマホ用ページネーション（視認性向上のため） */}
+        <div className="flex justify-center gap-2 mt-6 md:hidden">
+          {sliderItems.map((_, i) => (
+            <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          ))}
+        </div>
       </section>
 
       <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
