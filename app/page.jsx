@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { client } from '../lib/microcms';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 3600;
+export const revalidate = 3600; // 1時間キャッシュ（YouTubeクォータ節約のため）
 
 // --- Data Fetching ---
 
@@ -45,64 +44,24 @@ async function getDiscography() {
 async function getLatestVideo() {
   const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
   const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
-
   if (!API_KEY || !CHANNEL_ID) return null;
 
   try {
-    // 1. 検索実行
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`,
-      { cache: 'no-store' }
-    );
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`, { cache: 'no-store' });
     const searchData = await res.json();
-    
-    // searchData 自体がエラーを返していないかチェック
-    if (searchData.error) {
-      console.error("YouTube Search Error:", searchData.error);
-      return null;
-    }
+    if (!searchData.items) return null;
 
-    // 2. IDの抽出（video以外のタイプを確実に排除する）
-    const videoIds = searchData.items
-      ?.filter(item => item.id.videoId) // videoId があるものだけ抽出
-      .map(item => item.id.videoId)
-      .join(',');
-
-    if (!videoIds) return null;
-
-    // 3. 詳細取得
-    const detailRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`,
-      { cache: 'no-store' }
-    );
+    const videoIds = searchData.items.filter(item => item.id.videoId).map(item => item.id.videoId).join(',');
+    const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`);
     const detailData = await detailRes.json();
 
-    if (detailData.error) {
-      console.error("YouTube Video Detail Error:", detailData.error);
-      return null;
-    }
-
-    // 4. フィルタリング（Shorts除外）
     const filtered = detailData.items.filter(item => {
       const duration = item.contentDetails.duration;
-      const isLongVideo = duration.includes('M') || duration.includes('H');
-      const isNotShortsTag = !item.snippet.title.toLowerCase().includes('#shorts');
-      return isLongVideo && isNotShortsTag;
+      return (duration.includes('M') || duration.includes('H')) && !item.snippet.title.toLowerCase().includes('#shorts');
     });
 
-    // 候補がなければ最新動画を、あればフィルタ後を。
-    const result = filtered.length > 0 ? filtered[0] : detailData.items[0];
-
-    // HOMEページで表示しやすいようにデータを整形
-    return {
-      id: result.id,
-      snippet: result.snippet,
-      contentDetails: result.contentDetails
-    };
-  } catch (e) {
-    console.error("Fetch Execution Error:", e);
-    return null;
-  }
+    return filtered.length > 0 ? filtered[0] : detailData.items[0];
+  } catch (e) { return null; }
 }
 
 // --- Main Page Component ---
@@ -118,6 +77,28 @@ export default async function HomePage() {
 
   const latestSchedule = schedules[0];
   const latestDisco = disco[0];
+
+  // スライダー用アイテムの整理
+  const sliderItems = [
+    {
+      img: latestSchedule?.flyer?.url,
+      label: 'Latest Flyer',
+      href: '/schedule',
+      aspect: 'aspect-[3/4]'
+    },
+    {
+      img: latestDisco?.jacket?.url,
+      label: 'Latest Release',
+      href: '/discography',
+      aspect: 'aspect-square'
+    },
+    {
+      img: video?.snippet?.thumbnails?.maxres?.url || video?.snippet?.thumbnails?.high?.url,
+      label: 'Latest Video',
+      href: '/video',
+      aspect: 'aspect-video'
+    }
+  ];
 
   return (
     <main className="bg-[#0a0a0a] text-white pb-32">
@@ -141,28 +122,50 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トップのトピック */}
-      <section className="px-4 max-w-6xl mx-auto w-full mb-32">
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 no-scrollbar">
-          {latestSchedule?.flyer?.url && (
-            <div className="min-w-[85%] md:min-w-[30%] snap-center">
-              <img src={latestSchedule.flyer.url} alt="Latest Flyer" className="w-full aspect-[3/4] object-cover border border-white/10 shadow-2xl" />
-              <p className="mt-4 text-[10px] tracking-widest text-center opacity-50 uppercase font-bold">Latest Flyer</p>
+      {/* ② トップのトピックスライダー */}
+      <section className="px-4 max-w-6xl mx-auto w-full mb-32 relative group">
+        <div id="slider" className="flex overflow-x-auto snap-x snap-mandatory gap-8 pb-4 no-scrollbar scroll-smooth">
+          {sliderItems.map((item, idx) => (
+            <div key={idx} className="min-w-[85%] md:min-w-[30%] snap-center flex flex-col items-center">
+              <Link href={item.href} className="w-full group/item">
+                <div className={`w-full ${item.aspect} flex items-center justify-center bg-white/5 border border-white/10 shadow-2xl transition-transform duration-500 group-hover/item:scale-[1.02]`}>
+                  {item.img ? (
+                    <img 
+                      src={item.img} 
+                      alt={item.label} 
+                      className="max-w-full max-h-full object-contain" 
+                    />
+                  ) : (
+                    <div className="aspect-[4/3] w-full flex items-center justify-center">
+                      <span className="text-[10px] tracking-[0.4em] text-white/20 uppercase font-bold italic">No Image</span>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-6 text-[10px] tracking-[0.3em] text-center opacity-40 uppercase font-bold group-hover/item:opacity-100 transition-opacity">
+                  {item.label}
+                </p>
+              </Link>
             </div>
-          )}
-          {latestDisco?.jacket?.url && (
-            <div className="min-w-[85%] md:min-w-[30%] snap-center">
-              <img src={latestDisco.jacket.url} alt="Latest Release" className="w-full aspect-square object-cover border border-white/10 shadow-2xl" />
-              <p className="mt-4 text-[10px] tracking-widest text-center opacity-50 uppercase font-bold">Latest Release</p>
-            </div>
-          )}
-          {video?.thumbnail && (
-            <div className="min-w-[85%] md:min-w-[30%] snap-center flex flex-col justify-center">
-              <img src={video.thumbnail} alt="Latest Video" className="w-full aspect-video object-cover border border-white/10 shadow-2xl" />
-              <p className="mt-4 text-[10px] tracking-widest text-center opacity-50 uppercase font-bold">Latest Video</p>
-            </div>
-          )}
+          ))}
         </div>
+
+        {/* 左右のナビゲーションボタン */}
+        <button 
+          onClick="document.getElementById('slider').scrollBy({left: -400, behavior: 'smooth'})"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block"
+        >
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-white/40 hover:text-white transition-colors">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <button 
+          onClick="document.getElementById('slider').scrollBy({left: 400, behavior: 'smooth'})"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block"
+        >
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-white/40 hover:text-white transition-colors">
+            <path d="M9 18l6-6 6-6" transform="rotate(180 12 12)" />
+          </svg>
+        </button>
       </section>
 
       <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
@@ -194,7 +197,7 @@ export default async function HomePage() {
                     </span>
                   </div>
                   {item.category && (
-                    <span className="text-[10px] border border-white/60 px-3 py-1 tracking-widest text-white/60 uppercase">
+                    <span className="text-[10px] border border-white/20 px-3 py-1 tracking-widest text-white/40 uppercase">
                       {item.category}
                     </span>
                   )}
@@ -291,13 +294,13 @@ export default async function HomePage() {
           const dateDisplay = dateObj ? new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).format(dateObj).replace(/\//g, '.') : '';
           return (
             <div className="flex flex-col md:flex-row gap-12 items-start">
-              <div className="w-full md:w-80 shrink-0 shadow-2xl border border-white/10 aspect-square overflow-hidden bg-white/5">
-                {latestDisco.jacket ? <img src={latestDisco.jacket.url} alt={latestDisco.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px] tracking-widest uppercase">No Image</div>}
+              <div className="w-full md:w-80 shrink-0 shadow-2xl border border-white/10 aspect-square overflow-hidden bg-white/5 flex items-center justify-center">
+                {latestDisco.jacket ? <img src={latestDisco.jacket.url} alt={latestDisco.title} className="max-w-full max-h-full object-contain" /> : <div className="text-white/20 text-[10px] tracking-widest uppercase">No Image</div>}
               </div>
               <div className="flex-grow w-full space-y-5">
-                <div className="border-b border-white/20 pb-2">
+                <div className="border-b border-white/10 pb-2">
                   <div className="text-[13px] tracking-[0.2em] text-white font-bold uppercase mb-1">{latestDisco.type}</div>
-                  <div className="text-[12px] font-mono text-white tracking-tighter">{dateDisplay}</div>
+                  <div className="text-[12px] font-mono text-white/60 tracking-tighter">{dateDisplay}</div>
                 </div>
                 <h3 className="text-3xl font-bold tracking-wider text-white pt-1">{latestDisco.title}</h3>
                 {latestDisco.description && (
@@ -316,65 +319,37 @@ export default async function HomePage() {
 
       <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
-      {/* ⑥ VIDEO (最新の長尺動画1件を表示) */}
+      {/* ⑥ VIDEO */}
       <section className="px-4 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase">VIDEO</h2>
           <Link href="/video" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
         </div>
-
         {video ? (() => {
           const dateObj = new Date(video.snippet.publishedAt);
-          const dateDisplay = new Intl.DateTimeFormat('ja-JP', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            timeZone: 'Asia/Tokyo'
-          }).format(dateObj).replace(/\//g, '.');
+          const dateDisplay = new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).format(dateObj).replace(/\//g, '.');
 
           return (
             <div className="w-full">
-              <a 
-                href={`https://www.youtube.com/watch?v=${video.id}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="block group"
-              >
-                {/* サムネイル & 再生アイコン */}
+              <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer" className="block group">
                 <div className="relative aspect-video overflow-hidden bg-white/5 border border-white/10 shadow-2xl">
-                  <img 
-                    src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} 
-                    alt={video.snippet.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  {/* YouTube風再生ボタン */}
+                  <img src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} alt={video.snippet.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-20 h-14 bg-[#FF0000] rounded-2xl flex items-center justify-center shadow-2xl opacity-90 transition-transform duration-300 group-hover:scale-110">
                       <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1"></div>
                     </div>
                   </div>
-                  {/* 右下の日付ラベル */}
                   <div className="absolute bottom-0 right-0 p-3 bg-black/80 border-tl border-white/10">
-                    <p className="text-[12px] font-mono font-bold tracking-tighter text-white">
-                      {dateDisplay}
-                    </p>
+                    <p className="text-[12px] font-mono font-bold tracking-tighter text-white">{dateDisplay}</p>
                   </div>
                 </div>
-
-                {/* タイトル（VIDEOページのメイン動画と同じサイズ感） */}
                 <div className="mt-8">
-                  <h3 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-white group-hover:text-white/70 transition-colors">
-                    {video.snippet.title}
-                  </h3>
+                  <h3 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-white group-hover:text-white/70 transition-colors">{video.snippet.title}</h3>
                 </div>
               </a>
             </div>
           );
-        })() : (
-          <div className="py-20 text-center opacity-40 text-sm tracking-widest font-sans">
-            NO VIDEOS FOUND.
-          </div>
-        )}
+        })() : <div className="py-20 text-center opacity-40 text-sm tracking-widest font-sans">NO VIDEOS FOUND.</div>}
       </section>
 
     </main>
