@@ -71,7 +71,7 @@ export default async function HomePage() {
   return (
     <main className="bg-[#0a0a0a] text-white pb-32 space-y-32">
       
-      {/* ① メインビジュアル (ASHROOMの文字を消し、taglineを1.5倍に強調) */}
+      {/* ① メインビジュアル (taglineの縮小・文字詰め・改行禁止) */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
         {profile?.artist_photo?.url && (
           <div className="absolute inset-0 z-0">
@@ -82,8 +82,12 @@ export default async function HomePage() {
             />
           </div>
         )}
-        <div className="relative z-10 text-center px-4 max-w-5xl">
-          <p className="text-3xl md:text-5xl font-bold italic text-white tracking-[0.25em] drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] leading-relaxed">
+        <div className="relative z-10 text-center px-4 w-full overflow-hidden">
+          {/* text-2xl md:text-4xl (80%サイズ)
+            tracking-tighter (文字間隔詰め)
+            whitespace-nowrap (絶対に改行しない)
+          */}
+          <p className="text-2xl md:text-4xl font-bold italic text-white tracking-tighter drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] whitespace-nowrap">
             {profile?.tagline || "Alternative Rock from Chiba/Tokyo"}
           </p>
         </div>
@@ -114,7 +118,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ③ NEWS (最新2件) */}
+      {/* ③ NEWS */}
       <section className="px-4 max-w-4xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight uppercase shippori-mincho">NEWS</h2>
@@ -133,7 +137,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ④ SCHEDULE (最新1件) */}
+      {/* ④ SCHEDULE */}
       <section className="px-4 max-w-4xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">SCHEDULE</h2>
@@ -150,7 +154,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* ⑤ DISCOGRAPHY (ビデオの前に移動) */}
+      {/* ⑤ DISCOGRAPHY */}
       <section className="px-4 max-w-4xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">DISCOGRAPHY</h2>
@@ -170,7 +174,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* ⑥ VIDEO (最後に移動) */}
+      {/* ⑥ VIDEO (最後に配置) */}
       <section className="px-4 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase">VIDEO</h2>
