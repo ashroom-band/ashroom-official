@@ -22,9 +22,14 @@ async function getNews() {
 
 async function getSchedules() {
   try {
+    const now = new Date().toISOString();
     const data = await client.get({
       endpoint: 'schedule',
-      queries: { orders: '-publishedAt', limit: 1 } 
+      queries: { 
+        orders: 'date', // ライブ開催日が近い順
+        filters: `date[greater_than]${now}`, // 今日以降
+        limit: 3 // TOPICS（フライヤー）用も含めて数件取っておく
+      } 
     });
     return data.contents || [];
   } catch (e) { return []; }
