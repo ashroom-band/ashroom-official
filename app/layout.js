@@ -2,6 +2,7 @@ import './globals.css';
 import { siteConfig } from '../data/ashroomConfig';
 import { client } from '../lib/microcms';
 import Header from '../components/Header';
+import { FaTwitter, FaInstagram, FaYoutube, FaApple, FaSpotify } from 'react-icons/fa';
 
 async function getProfile() {
     try {
@@ -37,27 +38,27 @@ export default async function RootLayout({ children }) {
 
                 <footer className="bg-black py-20 px-4 border-t border-white/5">
                     <div className="max-w-4xl mx-auto flex flex-col items-center">
-                        {/* SNS Icons */}
-                        <div className="flex space-x-10 mb-10">
-                            <a href="https://x.com/ashroom_band" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
-                                <span className="text-xs tracking-[0.2em] font-bold uppercase">X (Twitter)</span>
+                        {/* ヘッダーのメニューと同様のSNS種類とアイコン構成 */}
+                        <div className="flex space-x-8 mb-10 text-xl opacity-50">
+                            <a href="https://x.com/ashroom_band" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
+                                <FaTwitter />
                             </a>
-                            <a href="https://www.instagram.com/ashroom_band" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
-                                <span className="text-xs tracking-[0.2em] font-bold uppercase">Instagram</span>
+                            <a href="https://www.instagram.com/ashroom_band" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
+                                <FaInstagram />
                             </a>
-                            <a href="https://www.youtube.com/@ashroom-band" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
-                                <span className="text-xs tracking-[0.2em] font-bold uppercase">YouTube</span>
+                            <a href="https://www.youtube.com/@ashroom-band" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
+                                <FaYoutube />
                             </a>
-                            <a href="https://music.apple.com/jp/artist/ashroom/1753733519" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
-                                <span className="text-xs tracking-[0.2em] font-bold uppercase">Apple Music</span>
+                            <a href="https://music.apple.com/jp/artist/ashroom/1753733519" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
+                                <FaApple />
                             </a>
-                            <a href="https://open.spotify.com/intl-ja/artist/2L7Yw8TAnq03X4j37y37lY" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
-                                <span className="text-xs tracking-[0.2em] font-bold uppercase">Spotify</span>
+                            <a href="https://open.spotify.com/artist/YOUR_ID" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
+                                <FaSpotify />
                             </a>
                         </div>
                         
                         <p className="text-gray-600 text-[10px] tracking-widest uppercase text-center">
-                            &copy; {new Date().getFullYear()} ashroom
+                            © {new Date().getFullYear()} ashroom
                         </p>
                     </div>
                 </footer>
