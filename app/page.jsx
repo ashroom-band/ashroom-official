@@ -296,16 +296,19 @@ export default async function HomePage() {
 
               {/* 右側：作品情報 */}
               <div className="flex-grow w-full space-y-5">
-                <div className="flex justify-between items-baseline border-b border-white/10 pb-2">
-                  <span className="text-[13px] tracking-[0.2em] text-white font-bold uppercase">{latestDisco.type}</span>
-                  <span className="text-[13px] font-mono text-white tracking-tighter">
+                <div className="border-b border-white/10 pb-2">
+                  {/* Typeを上に、日付をその下に配置 */}
+                  <div className="text-[13px] tracking-[0.2em] text-white font-bold uppercase mb-1">
+                    {latestDisco.type}
+                  </div>
+                  <div className="text-[12px] font-mono text-white/60 tracking-tighter">
                     {dateDisplay}
-                  </span>
+                  </div>
                 </div>
-                
-                <h3 className="text-3xl font-bold tracking-wider text-white">{latestDisco.title}</h3>
-                
-                {/* 解説（リッチエディタ対応） */}
+  
+                <h3 className="text-3xl font-bold tracking-wider text-white pt-1">{latestDisco.title}</h3>
+  
+              {/* 解説（リッチエディタ対応） */}
                 {latestDisco.description && (
                   <div 
                     className="text-sm text-white/80 leading-relaxed mt-4 prose prose-invert max-w-none line-clamp-4 md:line-clamp-none"
