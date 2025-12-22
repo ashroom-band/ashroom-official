@@ -28,16 +28,34 @@ export default async function RootLayout({ children }) {
                     rel="stylesheet"
                 />
             </head>
-            <body className="bg-[#0a0a0a] font-sans text-white antialiased">
+            <body className="bg-[#0a0a0a] font-sans text-white antialiased flex flex-col min-h-screen">
                 <Header profile={profile} />
 
-                {/* ヘッダーの高さ分、少し上部マージンを調整 */}
-                <main id="top" className="min-h-screen"> 
+                <main id="top" className="flex-grow"> 
                     {children}
                 </main>
 
-                <footer className="bg-black py-16 px-4 border-t border-white/5">
+                <footer className="bg-black py-20 px-4 border-t border-white/5">
                     <div className="max-w-4xl mx-auto flex flex-col items-center">
+                        {/* SNS Icons */}
+                        <div className="flex space-x-10 mb-10">
+                            <a href="https://x.com/ashroom_band" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
+                                <span className="text-xs tracking-[0.2em] font-bold uppercase">X (Twitter)</span>
+                            </a>
+                            <a href="https://www.instagram.com/ashroom_band" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
+                                <span className="text-xs tracking-[0.2em] font-bold uppercase">Instagram</span>
+                            </a>
+                            <a href="https://www.youtube.com/@ashroom-band" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
+                                <span className="text-xs tracking-[0.2em] font-bold uppercase">YouTube</span>
+                            </a>
+                            <a href="https://music.apple.com/jp/artist/ashroom/1753733519" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
+                                <span className="text-xs tracking-[0.2em] font-bold uppercase">Apple Music</span>
+                            </a>
+                            <a href="https://open.spotify.com/intl-ja/artist/2L7Yw8TAnq03X4j37y37lY" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
+                                <span className="text-xs tracking-[0.2em] font-bold uppercase">Spotify</span>
+                            </a>
+                        </div>
+                        
                         <p className="text-gray-600 text-[10px] tracking-widest uppercase text-center">
                             &copy; {new Date().getFullYear()} ashroom
                         </p>
