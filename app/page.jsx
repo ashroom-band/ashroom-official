@@ -43,20 +43,39 @@ async function getDiscography() {
 }
 
 async function getLatestVideo() {
-  const API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY;
-  const CHANNEL_ID = process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID || process.env.YOUTUBE_CHANNEL_ID;
+  const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+  const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
   if (!API_KEY || !CHANNEL_ID) return null;
 
   try {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=3&order=date&type=video&key=${API_KEY}`);
+    // 1. 最新の動画を検索（多めに取得してShortsを除外する準備をする）
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`
+    );
     const data = await res.json();
     if (!data.items || data.items.length === 0) return null;
-    return {
-      id: data.items[0].id.videoId,
-      title: data.items[0].snippet.title,
-      thumbnail: data.items[0].snippet.thumbnails.maxres?.url || data.items[0].snippet.thumbnails.high.url
-    };
-  } catch (e) { return null; }
+
+    // 2. 各動画の詳細（長さ）を取得
+    const videoIds = data.items.map(item => item.id.videoId).join(',');
+    const detailRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
+    );
+    const detailData = await detailRes.json();
+
+    // 3. フィルタリング（Shorts除外：1分以上またはタイトルに#shortsなし）
+    const filtered = detailData.items.filter(item => {
+      const duration = item.contentDetails.duration;
+      const title = item.snippet.title.toLowerCase();
+      const isLongVideo = duration.includes('M') || duration.includes('H');
+      const isNotShortsTag = !title.includes('#shorts');
+      return isLongVideo && isNotShortsTag;
+    });
+
+    return filtered[0] || null; // 条件に合う最新の1件を返す
+  } catch (e) {
+    console.error("YouTube Fetch Error:", e);
+    return null;
+  }
 }
 
 // --- Main Page Component ---
