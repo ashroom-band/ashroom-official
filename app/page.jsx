@@ -123,6 +123,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <hr className="border-t border-white/5 max-w-4xl mx-auto my-24 md:my-32" />
+
       {/* ③ NEWS (NEWSページとデザイン・挙動を統一) */}
       <section className="px-4 max-w-4xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
@@ -187,6 +189,8 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      <hr className="border-t border-white/5 max-w-4xl mx-auto my-24 md:my-32" />
 
      {/* ④ SCHEDULE (直近1件の詳細を表示) */}
       <section className="px-4 max-w-4xl mx-auto w-full">
@@ -336,6 +340,8 @@ export default async function HomePage() {
           <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho text-center py-10">No discography found.</p>
         )}
       </section>
+
+      <hr className="border-t border-white/5 max-w-4xl mx-auto my-24 md:my-32" />
 
       {/* ⑥ VIDEO (最後に配置) */}
       <section className="px-4 max-w-5xl mx-auto w-full">
