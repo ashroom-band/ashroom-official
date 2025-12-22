@@ -116,56 +116,56 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トピックスライダー（全面1枚表示） */}
+      {/* ② トピックスライダー（動的比率対応版） */}
       <section className="px-4 max-w-2xl mx-auto w-full mb-32 relative group">
-        {/* コンテナを1枚分のサイズに固定 */}
-        <div 
-          id="topic-slider" 
-          className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth w-full aspect-[4/5] bg-white/5 border border-white/10 shadow-2xl"
-        >
-          {sliderItems.map((item, idx) => (
-            <div key={idx} className="min-w-full h-full snap-center flex items-center justify-center">
-              <Link href={item.href} className="w-full h-full block relative group/item">
-                {item.img ? (
+        <div className="relative border border-white/10 bg-white/5 shadow-2xl overflow-hidden">
+          
+          {/* 横スライドコンテナ：h-autoで中身の画像に高さを合わせる */}
+          <div 
+            id="topic-slider" 
+            className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth h-auto"
+          >
+            {sliderItems.map((item, idx) => (
+              <div key={idx} className="min-w-full snap-center flex items-center justify-center">
+                <Link href={item.href} className="w-full block leading-[0]">
                   <img 
                     src={item.img} 
                     alt="" 
-                    className="w-full h-full object-contain p-4 transition-transform duration-700 group-hover/item:scale-[1.03]" 
+                    className="w-full h-auto block" 
+                    // 画像の比率を維持し、隙間を作らない
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-[10px] tracking-[0.4em] text-white/20 uppercase font-bold italic">No Image</span>
-                  </div>
-                )}
-              </Link>
-            </div>
-          ))}
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* 左ボタン < ：画像全体をカバーする高さに自動調整 */}
+          <button 
+            onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: -s.clientWidth, behavior: 'smooth'})"
+            className="absolute left-0 top-0 bottom-0 w-16 flex items-center justify-center bg-gradient-to-r from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-30 cursor-pointer"
+            aria-label="Previous"
+          >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white drop-shadow-lg">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          {/* 右ボタン > */}
+          <button 
+            onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: s.clientWidth, behavior: 'smooth'})"
+            className="absolute right-0 top-0 bottom-0 w-16 flex items-center justify-center bg-gradient-to-l from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-30 cursor-pointer"
+            aria-label="Next"
+          >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white drop-shadow-lg">
+              <path d="M9 18l6-6 6-6" transform="rotate(180 12 12)" />
+            </svg>
+          </button>
         </div>
-
-        {/* 左ボタン < */}
-        <button 
-          onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: -s.offsetWidth, behavior: 'smooth'})"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full md:-translate-x-20 opacity-40 hover:opacity-100 transition-opacity p-4 hidden md:block"
-        >
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-
-        {/* 右ボタン > */}
-        <button 
-          onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: s.offsetWidth, behavior: 'smooth'})"
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full md:translate-x-20 opacity-40 hover:opacity-100 transition-opacity p-4 hidden md:block"
-        >
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M9 18l6-6 6-6" transform="rotate(180 12 12)" />
-          </svg>
-        </button>
-
-        {/* スマホ用ページネーション（視認性向上のため） */}
-        <div className="flex justify-center gap-2 mt-6 md:hidden">
+        
+        {/* インジケーター：現在位置の目安（お好みで削除可能） */}
+        <div className="mt-4 flex justify-center gap-1.5 opacity-20 group-hover:opacity-50 transition-opacity">
           {sliderItems.map((_, i) => (
-            <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+            <div key={i} className="w-1 h-1 rounded-full bg-white"></div>
           ))}
         </div>
       </section>
