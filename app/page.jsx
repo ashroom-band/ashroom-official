@@ -45,35 +45,44 @@ async function getDiscography() {
 async function getLatestVideo() {
   const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
   const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
-  if (!API_KEY || !CHANNEL_ID) return null;
+
+  if (!API_KEY || !CHANNEL_ID) {
+    console.error("YouTube Error: API_KEY or CHANNEL_ID is missing.");
+    return null;
+  }
 
   try {
-    // 1. 最新の動画を検索（多めに取得してShortsを除外する準備をする）
+    // 1. 最新の動画リストを取得
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=15&order=date&type=video&key=${API_KEY}`
     );
-    const data = await res.json();
-    if (!data.items || data.items.length === 0) return null;
+    const searchData = await res.json();
+    
+    if (!searchData.items || searchData.items.length === 0) return null;
 
-    // 2. 各動画の詳細（長さ）を取得
-    const videoIds = data.items.map(item => item.id.videoId).join(',');
+    // 2. 詳細（長さ）を取得
+    const videoIds = searchData.items.map(item => item.id.videoId).join(',');
     const detailRes = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
     );
     const detailData = await detailRes.json();
 
-    // 3. フィルタリング（Shorts除外：1分以上またはタイトルに#shortsなし）
+    // 3. フィルタリング
     const filtered = detailData.items.filter(item => {
-      const duration = item.contentDetails.duration;
+      const duration = item.contentDetails.duration; // 例: "PT10M30S"
       const title = item.snippet.title.toLowerCase();
+      
+      // M(分) か H(時) が含まれていれば長尺動画とみなす
+      // 秒だけの動画（PT30Sなど）はShortsの可能性が高いので除外
       const isLongVideo = duration.includes('M') || duration.includes('H');
       const isNotShortsTag = !title.includes('#shorts');
+      
       return isLongVideo && isNotShortsTag;
     });
 
-    return filtered[0] || null; // 条件に合う最新の1件を返す
+    // filtered[0] の ID を .id に統一して返す（videos APIの結果は id 直下にある）
+    return filtered[0] || null;
   } catch (e) {
-    console.error("YouTube Fetch Error:", e);
     return null;
   }
 }
