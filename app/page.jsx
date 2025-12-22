@@ -118,22 +118,68 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ③ NEWS */}
+      {/* ③ NEWS (NEWSページとデザイン・挙動を統一) */}
       <section className="px-4 max-w-4xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight uppercase shippori-mincho">NEWS</h2>
           <Link href="/news" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
         </div>
+        
         <div className="divide-y divide-white/5 border-t border-white/5">
-          {news.map((item) => (
-            <Link key={item.id} href={`/news/${item.id}`} className="group flex flex-col md:flex-row md:items-center py-10 hover:bg-white/[0.02] transition-all px-4">
-              <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0 text-lg font-bold opacity-60 font-mono">
-                {new Date(item.publishedAt).toLocaleDateString().replace(/\//g, '.')}
-                {item.category && <span className="text-[9px] border border-white/20 px-3 py-1 uppercase tracking-widest">{item.category}</span>}
-              </div>
-              <h3 className="text-base md:text-lg group-hover:text-white transition-all">{item.title}</h3>
-            </Link>
-          ))}
+          {news.map((item) => {
+            // NEWSページと共通の日付処理ロジック
+            const dateObj = item.publishedAt ? new Date(item.publishedAt) : null;
+            
+            const dateDisplay = dateObj ? dateObj.toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                timeZone: 'Asia/Tokyo'
+            }).replace(/\//g, '.') : '';
+
+            const dayIndex = dateObj ? new Intl.DateTimeFormat('en-US', { 
+                weekday: 'short', 
+                timeZone: 'Asia/Tokyo' 
+            }).format(dateObj).toUpperCase() : '';
+            
+            const dayDisplay = dayIndex ? `[${dayIndex}]` : '';
+
+            return (
+              <Link 
+                key={item.id} 
+                href={`/news/${item.id}`} 
+                className="group flex flex-col md:flex-row md:items-center py-10 hover:bg-white/[0.02] transition-all px-4"
+              >
+                {/* 日付とカテゴリ */}
+                <div className="flex items-center space-x-6 mb-3 md:mb-0 md:w-64 shrink-0">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-bold tracking-widest text-white leading-none">
+                      {dateDisplay} <span className="text-xs ml-1 font-mono">{dayDisplay}</span>
+                    </span>
+                  </div>
+                  {item.category && (
+                    <span className="text-[10px] border border-white/20 px-3 py-1 tracking-widest text-white/40 uppercase">
+                      {item.category}
+                    </span>
+                  )}
+                </div>
+
+                {/* 見出し */}
+                <div className="flex-grow">
+                  <h3 className="text-base md:text-lg font-normal tracking-wide text-gray-300 group-hover:text-white group-hover:font-semibold transition-all duration-300">
+                    {item.title}
+                  </h3>
+                </div>
+
+                {/* 右側の矢印アイコン */}
+                <div className="hidden md:block opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
