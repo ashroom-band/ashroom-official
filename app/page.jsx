@@ -46,43 +46,61 @@ async function getLatestVideo() {
   const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
   const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
 
-  if (!API_KEY || !CHANNEL_ID) {
-    console.error("YouTube Error: API_KEY or CHANNEL_ID is missing.");
-    return null;
-  }
+  if (!API_KEY || !CHANNEL_ID) return null;
 
   try {
-    // 1. 最新の動画リストを取得
+    // 1. 検索実行
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=15&order=date&type=video&key=${API_KEY}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`,
+      { cache: 'no-store' }
     );
     const searchData = await res.json();
     
-    if (!searchData.items || searchData.items.length === 0) return null;
+    // searchData 自体がエラーを返していないかチェック
+    if (searchData.error) {
+      console.error("YouTube Search Error:", searchData.error);
+      return null;
+    }
 
-    // 2. 詳細（長さ）を取得
-    const videoIds = searchData.items.map(item => item.id.videoId).join(',');
+    // 2. IDの抽出（video以外のタイプを確実に排除する）
+    const videoIds = searchData.items
+      ?.filter(item => item.id.videoId) // videoId があるものだけ抽出
+      .map(item => item.id.videoId)
+      .join(',');
+
+    if (!videoIds) return null;
+
+    // 3. 詳細取得
     const detailRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`,
+      { cache: 'no-store' }
     );
     const detailData = await detailRes.json();
 
-    // 3. フィルタリング
+    if (detailData.error) {
+      console.error("YouTube Video Detail Error:", detailData.error);
+      return null;
+    }
+
+    // 4. フィルタリング（Shorts除外）
     const filtered = detailData.items.filter(item => {
-      const duration = item.contentDetails.duration; // 例: "PT10M30S"
-      const title = item.snippet.title.toLowerCase();
-      
-      // M(分) か H(時) が含まれていれば長尺動画とみなす
-      // 秒だけの動画（PT30Sなど）はShortsの可能性が高いので除外
+      const duration = item.contentDetails.duration;
       const isLongVideo = duration.includes('M') || duration.includes('H');
-      const isNotShortsTag = !title.includes('#shorts');
-      
+      const isNotShortsTag = !item.snippet.title.toLowerCase().includes('#shorts');
       return isLongVideo && isNotShortsTag;
     });
 
-    // filtered[0] の ID を .id に統一して返す（videos APIの結果は id 直下にある）
-    return filtered[0] || null;
+    // 候補がなければ最新動画を、あればフィルタ後を。
+    const result = filtered.length > 0 ? filtered[0] : detailData.items[0];
+
+    // HOMEページで表示しやすいようにデータを整形
+    return {
+      id: result.id,
+      snippet: result.snippet,
+      contentDetails: result.contentDetails
+    };
   } catch (e) {
+    console.error("Fetch Execution Error:", e);
     return null;
   }
 }
