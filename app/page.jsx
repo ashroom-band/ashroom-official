@@ -289,15 +289,63 @@ export default async function HomePage() {
 
       <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
-      {/* ⑥ VIDEO */}
+      {/* ⑥ VIDEO (最新の長尺動画1件を表示) */}
       <section className="px-4 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase">VIDEO</h2>
           <Link href="/video" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
         </div>
-        {video && (
-          <div className="relative aspect-video overflow-hidden border border-white/10 group shadow-2xl">
-            <iframe className="absolute inset-0 w-full h-full" src={`https://www.youtube.com/embed/${video.id}`} title={video.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+
+        {video ? (() => {
+          const dateObj = new Date(video.snippet.publishedAt);
+          const dateDisplay = new Intl.DateTimeFormat('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            timeZone: 'Asia/Tokyo'
+          }).format(dateObj).replace(/\//g, '.');
+
+          return (
+            <div className="w-full">
+              <a 
+                href={`https://www.youtube.com/watch?v=${video.id}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block group"
+              >
+                {/* サムネイル & 再生アイコン */}
+                <div className="relative aspect-video overflow-hidden bg-white/5 border border-white/10 shadow-2xl">
+                  <img 
+                    src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} 
+                    alt={video.snippet.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  {/* YouTube風再生ボタン */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-14 bg-[#FF0000] rounded-2xl flex items-center justify-center shadow-2xl opacity-90 transition-transform duration-300 group-hover:scale-110">
+                      <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1"></div>
+                    </div>
+                  </div>
+                  {/* 右下の日付ラベル */}
+                  <div className="absolute bottom-0 right-0 p-3 bg-black/80 border-tl border-white/10">
+                    <p className="text-[12px] font-mono font-bold tracking-tighter text-white">
+                      {dateDisplay}
+                    </p>
+                  </div>
+                </div>
+
+                {/* タイトル（VIDEOページのメイン動画と同じサイズ感） */}
+                <div className="mt-8">
+                  <h3 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-white group-hover:text-white/70 transition-colors">
+                    {video.snippet.title}
+                  </h3>
+                </div>
+              </a>
+            </div>
+          );
+        })() : (
+          <div className="py-20 text-center opacity-40 text-sm tracking-widest font-sans">
+            NO VIDEOS FOUND.
           </div>
         )}
       </section>
