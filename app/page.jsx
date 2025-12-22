@@ -119,7 +119,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <hr className="border-t border-white/10 max-w-4xl mx-auto my-32" />
+      <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
       {/* ③ NEWS */}
       <section className="px-4 max-w-4xl mx-auto w-full">
@@ -148,7 +148,7 @@ export default async function HomePage() {
                     </span>
                   </div>
                   {item.category && (
-                    <span className="text-[10px] border border-white/20 px-3 py-1 tracking-widest text-white/40 uppercase">
+                    <span className="text-[10px] border border-white/60 px-3 py-1 tracking-widest text-white/60 uppercase">
                       {item.category}
                     </span>
                   )}
@@ -169,7 +169,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <hr className="border-t border-white/10 max-w-4xl mx-auto my-32" />
+      <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
       {/* ④ SCHEDULE */}
       <section className="px-4 max-w-4xl mx-auto w-full">
@@ -179,7 +179,7 @@ export default async function HomePage() {
         </div>
 
         {latestSchedule ? (
-          <div className="flex flex-col md:flex-row gap-8 items-start border-b border-white/20 pb-16">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="w-full md:w-64 shrink-0">
               {latestSchedule.flyer?.url ? (
                 <div className="w-full bg-black border border-white/10 shadow-2xl">
@@ -231,7 +231,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      <hr className="border-t border-white/10 max-w-4xl mx-auto my-32" />
+      <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
       {/* ⑤ DISCOGRAPHY */}
       <section className="px-4 max-w-4xl mx-auto w-full">
@@ -249,9 +249,9 @@ export default async function HomePage() {
                 {latestDisco.jacket ? <img src={latestDisco.jacket.url} alt={latestDisco.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px] tracking-widest uppercase">No Image</div>}
               </div>
               <div className="flex-grow w-full space-y-5">
-                <div className="border-b border-white/10 pb-2">
+                <div className="border-b border-white/20 pb-2">
                   <div className="text-[13px] tracking-[0.2em] text-white font-bold uppercase mb-1">{latestDisco.type}</div>
-                  <div className="text-[12px] font-mono text-white/60 tracking-tighter">{dateDisplay}</div>
+                  <div className="text-[12px] font-mono text-white tracking-tighter">{dateDisplay}</div>
                 </div>
                 <h3 className="text-3xl font-bold tracking-wider text-white pt-1">{latestDisco.title}</h3>
                 {latestDisco.description && (
@@ -268,7 +268,7 @@ export default async function HomePage() {
         })() : <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho text-center py-10">No discography found.</p>}
       </section>
 
-      <hr className="border-t border-white/10 max-w-4xl mx-auto my-32" />
+      <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
       {/* ⑥ VIDEO */}
       <section className="px-4 max-w-5xl mx-auto w-full">
