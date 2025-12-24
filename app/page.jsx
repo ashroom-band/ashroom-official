@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { client } from '../lib/microcms';
 
-export const revalidate = 3600;
+export const revalidate =  86400;
 
 const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
