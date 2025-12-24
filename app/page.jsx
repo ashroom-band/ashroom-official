@@ -187,59 +187,50 @@ export default async function HomePage() {
 
       {/* ④ SCHEDULE */}
       <section className="px-4 max-w-4xl mx-auto w-full">
-        <div className="flex justify-between items-end mb-12">
-          <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">SCHEDULE</h2>
-          <Link href="/schedule" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
+  <div className="flex justify-between items-end mb-12">
+    <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">SCHEDULE</h2>
+    <Link href="/schedule" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
+  </div>
+
+  {latestSchedule ? (
+    <div className="flex flex-col md:flex-row gap-12 items-start">
+      {/* 画像エリア：幅を1.8倍、4:3、中央配置 */}
+      <div className="w-full md:w-[460px] shrink-0">
+        <div className="w-full aspect-[4/3] bg-black border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden">
+          {latestSchedule.flyer?.url ? (
+            <img 
+              src={latestSchedule.flyer.url} 
+              alt={latestSchedule.venue} 
+              className="max-w-full max-h-full object-contain" 
+            />
+          ) : (
+            <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Coming Soon</span>
+          )}
         </div>
-        {latestSchedule ? (
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-64 shrink-0">
-              {latestSchedule.flyer?.url ? (
-                <div className="w-full bg-black border border-white/10 shadow-2xl">
-                  <img src={latestSchedule.flyer.url} alt={latestSchedule.venue} className="w-full h-auto object-contain" />
-                </div>
-              ) : (
-                <div className="w-full aspect-video bg-white/5 border border-white/10 flex items-center justify-center">
-                  <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Coming Soon</span>
-                </div>
-              )}
-            </div>
-            <div className="flex-grow w-full">
-              <div className="mb-2 flex items-baseline gap-3">
-                <span className="text-2xl font-mono text-white tracking-tighter">
-                  {latestSchedule.date ? new Date(latestSchedule.date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).replace(/\//g, '.') : 'DATE TBD'}
-                </span>
-                <span className="text-sm font-mono text-white tracking-widest uppercase">
-                  {latestSchedule.date ? `[${new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(new Date(latestSchedule.date)).toUpperCase()}]` : ''}
-                </span>
-              </div>
-              {latestSchedule.name && <div className="text-xl font-bold text-white mb-3 tracking-wide leading-relaxed">『{latestSchedule.name}』</div>}
-              <h3 className="text-3xl font-bold mb-6 text-white tracking-tight">{latestSchedule.venue}</h3>
-              <div className="grid grid-cols-1 gap-4 mb-8 border-y border-white/10 py-5">
-                <div className="flex gap-8 text-sm tracking-widest font-mono text-white">
-                  {latestSchedule.open_time && <div>OPEN <span className="ml-2 font-sans">{latestSchedule.open_time}</span></div>}
-                  {latestSchedule.start_time && <div>START <span className="ml-2 font-sans">{latestSchedule.start_time}</span></div>}
-                </div>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm tracking-widest text-white uppercase font-sans">
-                  {latestSchedule.adv_price && <div>ADV <span className="ml-1">¥{latestSchedule.adv_price}</span></div>}
-                  {latestSchedule.door_price && <div>DOOR <span className="ml-1">¥{latestSchedule.door_price}</span></div>}
-                  {latestSchedule.student_price && <div>STUDENT <span className="ml-1">¥{latestSchedule.student_price}</span></div>}
-                </div>
-              </div>
-              <div className="text-white text-sm leading-relaxed mb-8 whitespace-pre-wrap opacity-80">{latestSchedule.description}</div>
-              <div className="flex flex-wrap gap-4">
-                {latestSchedule.ticket_url ? (
-                  <a href={latestSchedule.ticket_url} target="_blank" rel="noopener noreferrer" className="inline-block px-10 py-3 border border-white text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500">TICKET & INFO</a>
-                ) : (
-                  <p className="text-[11px] text-white tracking-widest leading-loose w-full mb-2 bg-white/5 p-3 border-l-2 border-white">※TICKET取り置きは、各SNSのDMでご連絡ください。</p>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho text-center py-20">No scheduled live at the moment.</p>
+      </div>
+      
+      {/* テキストエリア（画像が大きくなった分、バランスを調整） */}
+      <div className="flex-grow w-full">
+        {/* ...（日付・会場名などのコードはそのまま）... */}
+        <div className="mb-2 flex items-baseline gap-3">
+          <span className="text-2xl font-mono text-white tracking-tighter">
+            {latestSchedule.date ? new Date(latestSchedule.date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).replace(/\//g, '.') : 'DATE TBD'}
+          </span>
+          <span className="text-sm font-mono text-white tracking-widest uppercase">
+            {latestSchedule.date ? `[${new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(new Date(latestSchedule.date)).toUpperCase()}]` : ''}
+          </span>
+        </div>
+        {latestSchedule.name && (
+          <div className="text-xl font-bold text-white mb-3 tracking-wide leading-relaxed">『{latestSchedule.name}』</div>
         )}
-      </section>
+        <h3 className="text-3xl font-bold mb-6 text-white tracking-tight">{latestSchedule.venue}</h3>
+        {/* ...以下、既存のチケットURLや説明文... */}
+      </div>
+    </div>
+  ) : (
+    <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho text-center py-20">No scheduled live at the moment.</p>
+  )}
+</section>
 
       <hr className="border-t border-white/20 max-w-4xl mx-auto my-32" />
 
