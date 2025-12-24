@@ -17,20 +17,19 @@ export default function Header({ profile }) {
 
     return (
         <header className="fixed top-0 w-full z-[100]">
-            {/* 修正：背景を明るい透過色に変更（bg-white/10） */}
-            <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl border-b border-white/10 z-[120]"></div>
+            {/* 修正：背景を黒の70%透過（bg-black/70）に戻しました */}
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-xl border-b border-white/5 z-[120]"></div>
 
-            <div className="w-full flex items-center justify-between h-24 md:h-32 px-6 md:px-10 relative z-[130]">
-                {/* 修正：ロゴサイズをさらに拡大（h-20 md:h-28） */}
+            <div className="w-full flex items-center justify-between h-20 md:h-28 px-6 md:px-10 relative z-[130]">
+                {/* 修正：ロゴサイズを85%程度に縮小（h-18 md:h-24） */}
                 <Link href="/#top" onClick={() => setIsOpen(false)} className="hover:opacity-70 transition-opacity">
                     {profile?.band_logo?.url ? (
-                        <img src={profile.band_logo.url} alt="ashroom" className="h-20 md:h-28 w-auto object-contain" />
+                        <img src={profile.band_logo.url} alt="ashroom" className="h-18 md:h-24 w-auto object-contain" />
                     ) : (
-                        <span className="text-4xl font-bold tracking-tighter uppercase">ashroom</span>
+                        <span className="text-3xl font-bold tracking-tighter uppercase">ashroom</span>
                     )}
                 </Link>
 
-                {/* ナビゲーション：xl(1280px)以上で表示。それ未満はハンバーガーへ */}
                 <nav className="hidden xl:flex items-center gap-12">
                     <div className="flex items-center gap-10 text-lg font-bold tracking-[0.2em] shippori-mincho">
                         {menuItems.map((item) => (
@@ -50,7 +49,6 @@ export default function Header({ profile }) {
                     </div>
                 </nav>
 
-                {/* ハンバーガーボタン：xl(1280px)未満で表示 */}
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
                     className="xl:hidden w-12 h-12 flex flex-col justify-center items-center relative z-[140]"
@@ -62,18 +60,14 @@ export default function Header({ profile }) {
                 </button>
             </div>
 
-            {/* モバイルメニュー（フルスクリーン） */}
+            {/* モバイルメニュー */}
             <div className={`fixed inset-0 z-[110] transition-all duration-500 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                 <div className="absolute inset-0 bg-black/95 backdrop-blur-md"></div>
                 <nav className="relative h-full w-full overflow-y-auto pt-40 pb-20 flex flex-col items-center">
                     <ul className="flex flex-col items-center gap-12 w-full px-6">
                         {menuItems.map((item) => (
                             <li key={item.name} className="w-full text-center">
-                                <Link 
-                                    href={item.path} 
-                                    onClick={() => setIsOpen(false)}
-                                    className="text-3xl font-bold tracking-[0.3em] shippori-mincho text-white hover:text-white/50 transition-colors block py-2"
-                                >
+                                <Link href={item.path} onClick={() => setIsOpen(false)} className="text-3xl font-bold tracking-[0.3em] shippori-mincho text-white hover:text-white/50 transition-colors block py-2">
                                     {item.name}
                                 </Link>
                             </li>
