@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { SNS_LINKS } from '../lib/constants'; // インポート
 
 export default function Header({ profile }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -14,29 +15,22 @@ export default function Header({ profile }) {
         { name: 'CONTACT', path: '/contact' },
     ];
 
-    const snsLinks = [
-        { name: 'Instagram', url: 'https://www.instagram.com/ashroom_official/', icon: <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /> },
-        { name: 'X', url: 'https://x.com/ashroom_band', icon: <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /> },
-        { name: 'YouTube', url: 'https://youtube.com/@ashroom_official?si=CdMu-kdG2aowDEoa', icon: <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /> },
-        { name: 'TikTok', url: 'https://www.tiktok.com/@ashroom__official?is_from_webapp=1&sender_device=pc', icon: <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.776 8.776 0 0 1-1.87-1.41c-.01 3.53.01 7.06-.01 10.58-.1 2.4-1.13 4.89-3.05 6.43-1.92 1.54-4.63 2.05-6.95 1.34-2.32-.71-4.23-2.61-4.88-4.93-.65-2.32-.14-4.98 1.39-6.91 1.53-1.93 3.94-3.03 6.36-3.08 0 1.26 0 2.52.01 3.79-1.31.02-2.66.45-3.64 1.34-1 1-1.47 2.45-1.25 3.84.21 1.39 1.18 2.65 2.47 3.2 1.29.55 2.85.42 4.02-.35 1.17-.77 1.88-2.14 1.95-3.53.05-5.11.01-10.21.01-15.31z" /> }
-    ];
-
     return (
         <header className="fixed top-0 w-full z-[100]">
-            {/* ヘッダー背景（メニュー開閉に関わらず表示） */}
-            <div className="absolute inset-0 bg-black/85 backdrop-blur-xl border-b border-white/5 z-[120]"></div>
+            {/* 修正⑤：背景を不透明度70%の黒（bg-black/70）に変更 */}
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-xl border-b border-white/5 z-[120]"></div>
 
-            <div className="w-full flex items-center justify-between h-20 md:h-24 px-4 md:px-6 lg:px-10 relative z-[130]">
-                {/* ロゴ */}
+            <div className="w-full flex items-center justify-between h-20 md:h-28 px-4 md:px-6 lg:px-10 relative z-[130]">
+                {/* 修正②：ロゴサイズを1.5倍に（h-9→h-14, h-12→h-18 程度へ調整） */}
                 <Link href="/#top" onClick={() => setIsOpen(false)} className="hover:opacity-70 transition-opacity">
                     {profile?.band_logo?.url ? (
-                        <img src={profile.band_logo.url} alt="ashroom" className="h-9 md:h-12 w-auto object-contain" />
+                        <img src={profile.band_logo.url} alt="ashroom" className="h-14 md:h-18 w-auto object-contain" />
                     ) : (
-                        <span className="text-2xl font-bold tracking-tighter uppercase">ashroom</span>
+                        <span className="text-3xl font-bold tracking-tighter uppercase">ashroom</span>
                     )}
                 </Link>
 
-                {/* PCメニュー */}
+                {/* 修正③：ナビゲーション。lg:flex（1024px以上）でのみ表示されるよう指定 */}
                 <nav className="hidden lg:flex items-center gap-12">
                     <div className="flex items-center gap-10 text-sm md:text-lg font-bold tracking-[0.2em] shippori-mincho">
                         {menuItems.map((item) => (
@@ -45,35 +39,34 @@ export default function Header({ profile }) {
                             </Link>
                         ))}
                     </div>
+                    {/* SNS共通化 */}
                     <div className="flex items-center gap-6 pl-10 border-l border-white/20">
-                        {snsLinks.map((sns) => (
+                        {SNS_LINKS.map((sns) => (
                             <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="w-5 h-5 fill-current hover:text-white/50 transition-colors">
                                 <svg viewBox="0 0 24 24" className="w-full h-full overflow-visible">
-                                    {sns.icon}
+                                    <path d={sns.iconPath} />
                                 </svg>
                             </a>
                         ))}
                     </div>
                 </nav>
 
-                {/* ハンバーガーボタン */}
+                {/* ハンバーガーボタン：lg:hidden により1024px未満でのみ表示 */}
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
-                    className="lg:hidden w-10 h-10 flex flex-col justify-center items-center"
+                    className="lg:hidden w-10 h-10 flex flex-col justify-center items-center relative z-[140]"
                     aria-label="Menu"
                 >
-                    <span className={`w-8 h-[2px] bg-white transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-[10px]' : 'mb-[8px]'}`} />
-                    <span className={`w-8 h-[2px] bg-white transition-all duration-300 ${isOpen ? 'opacity-0' : 'mb-[8px]'}`} />
-                    <span className={`w-8 h-[2px] bg-white transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-[10px]' : ''}`} />
+                    <span className={`w-8 h-[2px] bg-white transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-[2px]' : 'mb-[8px]'}`} />
+                    {!isOpen && <span className="w-8 h-[2px] bg-white mb-[8px] transition-all duration-300" />}
+                    <span className={`w-8 h-[2px] bg-white transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-[0px]' : ''}`} />
+                    {/* 微調整：上記translate-yの値などはロゴ拡大に合わせて微調整しています */}
                 </button>
             </div>
 
-            {/* モバイルオーバーレイメニュー */}
-            <div className={`fixed inset-0 z-[110] transition-all duration-500 ${isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
-                {/* 背景：後ろが少し透ける暗い色 */}
+            {/* モバイルメニュー */}
+            <div className={`fixed inset-0 z-[110] transition-all duration-500 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                 <div className="absolute inset-0 bg-black/95 backdrop-blur-md"></div>
-                
-                {/* コンテンツエリア */}
                 <nav className="relative h-full w-full overflow-y-auto pt-32 pb-20 flex flex-col items-center">
                     <ul className="flex flex-col items-center gap-10 w-full px-6">
                         {menuItems.map((item) => (
@@ -89,12 +82,12 @@ export default function Header({ profile }) {
                         ))}
                     </ul>
                     
-                    {/* SNSアイコン */}
+                    {/* SNS共通化 */}
                     <div className="flex gap-10 mt-16 flex-wrap justify-center px-10">
-                        {snsLinks.map((sns) => (
+                        {SNS_LINKS.map((sns) => (
                             <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-white/50 transition-colors">
                                 <svg viewBox="0 0 24 24" className="w-8 h-8 fill-current overflow-visible">
-                                    {sns.icon}
+                                    <path d={sns.iconPath} />
                                 </svg>
                             </a>
                         ))}
