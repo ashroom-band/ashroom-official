@@ -92,7 +92,7 @@ export default async function HomePage() {
       img: video?.snippet?.thumbnails?.maxres?.url || video?.snippet?.thumbnails?.high?.url,
       href: '/video',
     }
-  ];
+  ].filter(item => item.img); // 画像が存在するもののみ表示
 
   return (
     <main className="bg-[#0a0a0a] text-white pb-32">
@@ -116,14 +116,14 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トピックスライダー（動的比率対応版） */}
+      {/* ② トピックスライダー（修正版） */}
       <section className="px-4 max-w-2xl mx-auto w-full mb-32 relative group">
-        <div className="relative border border-white/10 bg-white/5 shadow-2xl overflow-hidden">
+        <div className="relative overflow-hidden shadow-2xl">
           
-          {/* 横スライドコンテナ：h-autoで中身の画像に高さを合わせる */}
+          {/* 横スライドコンテナ */}
           <div 
             id="topic-slider" 
-            className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth h-auto"
+            className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth h-auto items-start"
           >
             {sliderItems.map((item, idx) => (
               <div key={idx} className="min-w-full snap-center flex items-center justify-center">
@@ -131,21 +131,20 @@ export default async function HomePage() {
                   <img 
                     src={item.img} 
                     alt="" 
-                    className="w-full h-auto block" 
-                    // 画像の比率を維持し、隙間を作らない
+                    className="w-full h-auto block object-contain" 
                   />
                 </Link>
               </div>
             ))}
           </div>
 
-          {/* 左ボタン < ：画像全体をカバーする高さに自動調整 */}
+          {/* 左ボタン < */}
           <button 
             onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: -s.clientWidth, behavior: 'smooth'})"
-            className="absolute left-0 top-0 bottom-0 w-16 flex items-center justify-center bg-gradient-to-r from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-30 cursor-pointer"
+            className="absolute left-0 top-0 bottom-0 w-12 md:w-16 flex items-center justify-center bg-black/10 hover:bg-black/30 transition-all z-30 cursor-pointer"
             aria-label="Previous"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white drop-shadow-lg">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/70 hover:text-white drop-shadow-lg">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
@@ -153,19 +152,19 @@ export default async function HomePage() {
           {/* 右ボタン > */}
           <button 
             onClick="const s = document.getElementById('topic-slider'); s.scrollBy({left: s.clientWidth, behavior: 'smooth'})"
-            className="absolute right-0 top-0 bottom-0 w-16 flex items-center justify-center bg-gradient-to-l from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-30 cursor-pointer"
+            className="absolute right-0 top-0 bottom-0 w-12 md:w-16 flex items-center justify-center bg-black/10 hover:bg-black/30 transition-all z-30 cursor-pointer"
             aria-label="Next"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white drop-shadow-lg">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/70 hover:text-white drop-shadow-lg">
               <path d="M9 18l6-6 6-6" transform="rotate(180 12 12)" />
             </svg>
           </button>
         </div>
         
-        {/* インジケーター：現在位置の目安（お好みで削除可能） */}
-        <div className="mt-4 flex justify-center gap-1.5 opacity-20 group-hover:opacity-50 transition-opacity">
+        {/* インジケーター */}
+        <div className="mt-6 flex justify-center gap-2">
           {sliderItems.map((_, i) => (
-            <div key={i} className="w-1 h-1 rounded-full bg-white"></div>
+            <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
           ))}
         </div>
       </section>
