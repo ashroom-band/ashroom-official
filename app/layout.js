@@ -1,22 +1,4 @@
-import './globals.css';
-import { siteConfig } from '../data/ashroomConfig';
-import { client } from '../lib/microcms';
-import Header from '../components/Header';
-import { SNS_LINKS } from '../lib/constants'; // インポート
-
-async function getProfile() {
-    try {
-        const data = await client.get({ endpoint: 'profile' });
-        return data.contents[0];
-    } catch (error) {
-        return null;
-    }
-}
-
-export const metadata = {
-    title: siteConfig.siteTitle,
-    description: siteConfig.description,
-};
+// ... (上部のインポートはそのまま)
 
 export default async function RootLayout({ children }) {
     const profile = await getProfile();
@@ -36,23 +18,18 @@ export default async function RootLayout({ children }) {
                     {children}
                 </main>
 
-                <footer className="bg-black py-20 px-4 border-t border-white/5">
+                <footer className="bg-black py-24 px-4 border-t border-white/5">
                     <div className="max-w-4xl mx-auto flex flex-col items-center">
-                        {/* SNSリンクの共通化 */}
-                        <div className="flex gap-8 mb-10">
+                        <div className="flex gap-10">
                             {SNS_LINKS.map((sns) => (
-                                <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="w-5 h-5 fill-current opacity-40 hover:opacity-100 transition-all">
-                                    <svg viewBox="0 0 24 24" className="w-full h-full overflow-visible">
+                                <a key={sns.name} href={sns.url} target="_blank" rel="noopener noreferrer" className="w-6 h-6 fill-current opacity-40 hover:opacity-100 transition-all">
+                                    <svg viewBox="0 0 24 24" className="w-full h-full">
                                         <path d={sns.iconPath} />
                                     </svg>
                                 </a>
                             ))}
                         </div>
-                        
-                        {/* 修正④：「@ASHROOM」表記を削除し、コピーライトのみに */}
-                        <p className="text-gray-600 text-[10px] tracking-widest uppercase text-center">
-                            © {new Date().getFullYear()} ashroom
-                        </p>
+                        {/* 修正：ここに以前あった <p>（コピーライト）を完全に削除しました */}
                     </div>
                 </footer>
             </body>
