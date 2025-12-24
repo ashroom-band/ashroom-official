@@ -19,9 +19,9 @@ export default async function SchedulePage() {
           {schedules.map((item) => (
             <div key={item.id} className="flex flex-col md:flex-row gap-12 items-start pb-20 border-b border-white/10 last:border-0">
               
-              {/* 画像エリア：460px、4:3、中央配置 */}
+              {/* 画像エリア：460px、4:3、中央配置、枠線なし */}
               <div className="w-full md:w-[460px] shrink-0">
-                <div className="w-full aspect-[4/3] bg-black/40 border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden">
+                <div className="w-full aspect-[4/3] bg-black/40 shadow-2xl flex items-center justify-center overflow-hidden">
                   {item.flyer?.url ? (
                     <img 
                       src={item.flyer.url} 
@@ -34,7 +34,7 @@ export default async function SchedulePage() {
                 </div>
               </div>
 
-              {/* テキストエリア：既存の全要素を完全に維持 */}
+              {/* テキストエリア */}
               <div className="flex-grow w-full">
                 <div className="mb-4 flex items-baseline gap-4">
                   <span className="text-3xl font-mono text-white tracking-tighter">
