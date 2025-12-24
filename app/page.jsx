@@ -40,7 +40,7 @@ export default async function HomePage() {
     {
       img: latestSchedule?.flyer?.url || null,
       href: '/schedule',
-      label: 'LATEST SCHEDULE'
+      label: 'NEXT LIVE'
     },
     {
       img: latestDisco?.jacket?.url || null,
