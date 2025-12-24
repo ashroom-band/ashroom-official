@@ -116,17 +116,17 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トピックスライダー（120%拡大・ボタン外側配置） */}
-      <section className="px-12 max-w-4xl mx-auto w-full mb-20 relative group">
-        <div className="relative flex items-center">
+      {/* ② トピックスライダー（120%拡大・完全修正版） */}
+      <section className="px-16 max-w-6xl mx-auto w-full mb-20 relative group">
+        <div className="relative flex items-center justify-center">
           
-          {/* 左ボタン < (画像の外側) */}
+          {/* 左ボタン < */}
           <button 
-            onClick="document.getElementById('topic-slider').scrollBy({left: -document.getElementById('topic-slider').clientWidth, behavior: 'smooth'})"
-            className="absolute -left-12 md:-left-16 p-2 z-30 cursor-pointer hover:scale-110 transition-transform"
+            onClick="const el = document.getElementById('topic-slider'); el.scrollBy({left: -el.offsetWidth, behavior: 'smooth'})"
+            className="absolute left-0 md:-left-4 p-2 z-30 cursor-pointer hover:scale-125 transition-transform"
             aria-label="Previous"
           >
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/50 hover:text-white">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 hover:text-white">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
@@ -138,7 +138,7 @@ export default async function HomePage() {
               className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth h-auto"
             >
               {sliderItems.map((item, idx) => (
-                <div key={idx} className="min-w-full snap-center flex items-center justify-center">
+                <div key={idx} className="min-w-full snap-center flex items-center justify-center bg-black/40">
                   <Link href={item.href} className="w-full block leading-[0]">
                     <img 
                       src={item.img} 
@@ -151,22 +151,22 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* 右ボタン > (画像の外側) */}
+          {/* 右ボタン > (反転を使わず直接右向きのパスを指定) */}
           <button 
-            onClick="document.getElementById('topic-slider').scrollBy({left: document.getElementById('topic-slider').clientWidth, behavior: 'smooth'})"
-            className="absolute -right-12 md:-right-16 p-2 z-30 cursor-pointer hover:scale-110 transition-transform"
+            onClick="const el = document.getElementById('topic-slider'); el.scrollBy({left: el.offsetWidth, behavior: 'smooth'})"
+            className="absolute right-0 md:-right-4 p-2 z-30 cursor-pointer hover:scale-125 transition-transform"
             aria-label="Next"
           >
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/50 hover:text-white">
-              <path d="M9 18l6-6-6-6" transform="rotate(180 12 12)" />
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 hover:text-white">
+              <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
         
-        {/* インジケーター（余白を詰めるためmt-4） */}
-        <div className="mt-4 flex justify-center gap-2">
+        {/* インジケーター */}
+        <div className="mt-8 flex justify-center gap-2">
           {sliderItems.map((_, i) => (
-            <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+            <div key={i} className="w-2 h-2 rounded-full bg-white/10"></div>
           ))}
         </div>
       </section>
