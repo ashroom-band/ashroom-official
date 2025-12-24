@@ -80,15 +80,15 @@ export default async function HomePage() {
       <section className="px-4 max-w-[1400px] mx-auto w-full mb-32 relative group">
         <div className="flex items-center gap-4">
           
-          {/* 左ボタン < */}
+          {/* 左ボタン：テキスト「＜」 */}
           <button 
             type="button"
             id="prev-btn"
             className="hidden md:flex shrink-0 w-16 h-16 items-center justify-center rounded-full border border-white/10 hover:bg-white/10 transition-all z-30"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+            <span className="text-3xl font-light mt-[-4px] text-white/40 hover:text-white transition-colors leading-none select-none">
+              ＜
+            </span>
           </button>
 
           {/* スライダー本体 */}
@@ -115,15 +115,15 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* 右ボタン > (向きを直接書き換え) */}
+          {/* 右ボタン：テキスト「＞」 */}
           <button 
             type="button"
             id="next-btn"
             className="hidden md:flex shrink-0 w-16 h-16 items-center justify-center rounded-full border border-white/10 hover:bg-white/10 transition-all z-30"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18l6-6-6-6" transform="rotate(180 12 12)" />
-            </svg>
+            <span className="text-3xl font-light mt-[-4px] text-white/40 hover:text-white transition-colors leading-none select-none">
+              ＞
+            </span>
           </button>
         </div>
 
