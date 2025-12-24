@@ -1,6 +1,29 @@
-// ... (上部のインポートはそのまま)
+// app/layout.js
+
+import './globals.css';
+import { siteConfig } from '../data/ashroomConfig';
+import { client } from '../lib/microcms';
+import Header from '../components/Header';
+import { SNS_LINKS } from '../lib/constants';
+
+// --- この getProfile 関数が不足しているためエラーになっています ---
+async function getProfile() {
+    try {
+        const data = await client.get({ endpoint: 'profile' });
+        return data.contents[0];
+    } catch (error) {
+        return null;
+    }
+}
+// --------------------------------------------------------
+
+export const metadata = {
+    title: siteConfig.siteTitle,
+    description: siteConfig.description,
+};
 
 export default async function RootLayout({ children }) {
+    // ここで getProfile を呼び出しています
     const profile = await getProfile();
 
     return (
@@ -29,7 +52,6 @@ export default async function RootLayout({ children }) {
                                 </a>
                             ))}
                         </div>
-                        {/* 修正：ここに以前あった <p>（コピーライト）を完全に削除しました */}
                     </div>
                 </footer>
             </body>
