@@ -1,52 +1,50 @@
+import { client } from '../../lib/microcms';
+
 const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
 
-export const revalidate = 3600; // 1時間に1回更新
+export const revalidate = 86400; // 24時間キャッシュ（API節約）
 
-async function getLatestVideos() {
-  if (!API_KEY || !CHANNEL_ID) {
-    return { error: "API configuration missing", items: [] };
-  }
+async function getVideosFromCMS() {
+  if (!API_KEY) return { items: [] };
 
   try {
-    // 1. 検索件数を最大（50件）まで増やして、過去の動画まで探せるようにする
+    // 1. microCMSから全件取得（順番は不問）
+    const cmsData = await client.get({ 
+      endpoint: 'video',
+      queries: { limit: 50 } 
+    });
+    
+    const urls = cmsData.contents.map(c => c.youtube_url).filter(Boolean);
+    if (urls.length === 0) return { items: [] };
+
+    // 2. URLからIDを抽出
+    const videoIds = urls.map(url => 
+      url.match(/(?:v=|\/|embed\/|shorts\/|youtu\.be\/)([^?&/]+)/)?.[1]
+    ).filter(Boolean).join(',');
+
+    // 3. YouTube APIで詳細情報を一括取得（Videos: list）
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=50&order=date&type=video&key=${API_KEY}`
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${API_KEY}`
     );
     const data = await res.json();
-    
-    if (data.error) return { error: data.error.message, items: [] };
-    if (!data.items || data.items.length === 0) return { items: [] };
 
-    // 2. 詳細（長さ）を取得
-    const videoIds = data.items.map(item => item.id.videoId).join(',');
-    const detailRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`
-    );
-    const detailData = await detailRes.json();
+    if (!data.items) return { items: [] };
 
-    // 3. フィルタリング（Shortsを除外して5件）
-    const filtered = detailData.items.filter(item => {
-      const duration = item.contentDetails.duration;
-      const title = item.snippet.title.toLowerCase();
-      
-      // Shortsではない判定：
-      // ・durationに M(分) か H(時) が含まれる
-      // ・かつ、タイトルに #shorts が含まれない
-      const isLongVideo = duration.includes('M') || duration.includes('H');
-      const isNotShortsTag = !title.includes('#shorts');
-      
-      return isLongVideo && isNotShortsTag;
-    }).slice(0, 5); // 確実に5本取り出す
+    // 4. YouTubeの公開日時(publishedAt)で降順（新しい順）にソート
+    const sortedItems = data.items.sort((a, b) => {
+      return new Date(b.snippet.publishedAt).getTime() - new Date(a.snippet.publishedAt).getTime();
+    });
 
-    return { items: filtered };
+    return { items: sortedItems };
   } catch (error) {
-    return { error: "Failed to fetch data", items: [] };
+    console.error("Video page fetch error:", error);
+    return { items: [] };
   }
 }
 
 export default async function VideoPage() {
-  const result = await getLatestVideos();
+  const result = await getVideosFromCMS();
   const videos = result.items;
 
   return (
@@ -85,7 +83,7 @@ export default async function VideoPage() {
                       <img 
                         src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} 
                         alt={video.snippet.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-16 h-12 bg-[#FF0000] rounded-xl flex items-center justify-center shadow-2xl opacity-90 transition-transform duration-300 group-hover:scale-110">
