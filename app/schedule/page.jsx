@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { client } from '../lib/microcms';
+import { client } from '../../lib/microcms';
 
 export const revalidate = 60;
 
