@@ -36,7 +36,6 @@ export default async function HomePage() {
   const latestSchedule = schedules[0];
   const latestDisco = disco[0];
 
-  // スライダーアイテムの構築（ディスコグラフィーと同じ安全な取得方法に変更）
   const sliderItems = [
     {
       img: latestSchedule?.flyer?.url || null,
@@ -53,12 +52,12 @@ export default async function HomePage() {
       href: '/video',
       label: 'LATEST VIDEO'
     }
-  ].filter(item => item.img !== null); // 画像があるものだけ残す
+  ].filter(item => item.img !== null);
 
   return (
     <main className="bg-[#0a0a0a] text-white pb-32">
       
-      {/* ① メインビジュアル */}
+      {/* ① メインビジュアル (変更なし) */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden mb-32">
         {profile?.artist_photo?.url && (
           <div className="absolute inset-0 z-0">
@@ -77,38 +76,38 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トピックスライダー（さらに巨大化・確実な動作） */}
+      {/* ② トピックスライダー (4:3・中央配置・ボタン修正) */}
       <section className="px-4 max-w-[1400px] mx-auto w-full mb-32 relative group">
         <div className="flex items-center gap-4">
           
-          {/* 左ボタン */}
+          {/* 左ボタン < */}
           <button 
             type="button"
             id="prev-btn"
             className="hidden md:flex shrink-0 w-16 h-16 items-center justify-center rounded-full border border-white/10 hover:bg-white/10 transition-all z-30"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
 
-          {/* メインコンテナ */}
-          <div className="relative flex-grow overflow-hidden shadow-2xl">
+          {/* スライダー本体 */}
+          <div className="relative flex-grow overflow-hidden shadow-2xl bg-black/20">
             <div 
               id="topic-slider" 
               className="flex overflow-x-hidden snap-x snap-mandatory no-scrollbar scroll-smooth"
             >
               {sliderItems.map((item, idx) => (
-                <div key={idx} className="min-w-full snap-center relative">
-                  <Link href={item.href} className="block group/item">
+                <div key={idx} className="min-w-full snap-center flex items-center justify-center aspect-[4/3] relative">
+                  <Link href={item.href} className="w-full h-full flex items-center justify-center group/item p-2">
                     <img 
                       src={item.img} 
                       alt="" 
-                      className="w-full h-auto object-contain block mx-auto" 
+                      className="max-w-full max-h-full object-contain block shadow-xl" 
                     />
                     {/* キャプション */}
-                    <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 border-l-2 border-white opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
-                      <p className="text-[10px] tracking-[0.3em] font-bold">{item.label}</p>
+                    <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md px-4 py-2 border-l-2 border-white opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
+                      <p className="text-[10px] tracking-[0.3em] font-bold text-white">{item.label}</p>
                     </div>
                   </Link>
                 </div>
@@ -116,13 +115,13 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* 右ボタン */}
+          {/* 右ボタン > (向きを直接書き換え) */}
           <button 
             type="button"
             id="next-btn"
             className="hidden md:flex shrink-0 w-16 h-16 items-center justify-center rounded-full border border-white/10 hover:bg-white/10 transition-all z-30"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 18l6-6-6-6" transform="rotate(180 12 12)" />
             </svg>
           </button>
@@ -135,7 +134,6 @@ export default async function HomePage() {
           ))}
         </div>
 
-        {/* JavaScriptを直接注入（これが一番確実です） */}
         <script dangerouslySetInnerHTML={{ __html: `
           document.getElementById('next-btn')?.addEventListener('click', function() {
             const s = document.getElementById('topic-slider');
