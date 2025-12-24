@@ -3,27 +3,34 @@ import { client } from '../lib/microcms';
 
 export const revalidate = 3600;
 
-// --- Data Fetching (変更なし) ---
+const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
+
+// --- Data Fetching ---
 async function getProfile() { try { const data = await client.get({ endpoint: 'profile' }); return data.contents[0] || null; } catch (e) { return null; } }
 async function getNews() { try { const data = await client.get({ endpoint: 'news', queries: { orders: '-publishedAt', limit: 2 } }); return data.contents || []; } catch (e) { return []; } }
 async function getSchedules() { try { const now = new Date().toISOString(); const data = await client.get({ endpoint: 'schedule', queries: { orders: 'date', filters: `date[greater_than]${now}`, limit: 3 } }); return data.contents || []; } catch (e) { return []; } }
 async function getDiscography() { try { const data = await client.get({ endpoint: 'discography', queries: { orders: '-publishedAt', limit: 1 } }); return data.contents || []; } catch (e) { return []; } }
+
+// VIDEOページと同じ、確実な取得ロジックに修正
 async function getLatestVideo() {
-  const API_KEY = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
-  const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID;
   if (!API_KEY || !CHANNEL_ID) return null;
   try {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=10&order=date&type=video&key=${API_KEY}`, { cache: 'no-store' });
-    const searchData = await res.json();
-    if (!searchData.items) return null;
-    const videoIds = searchData.items.filter(item => item.id.videoId).map(item => item.id.videoId).join(',');
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=50&order=date&type=video&key=${API_KEY}`, { cache: 'no-store' });
+    const data = await res.json();
+    if (!data.items || data.items.length === 0) return null;
+
+    const videoIds = data.items.map(item => item.id.videoId).join(',');
     const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`);
     const detailData = await detailRes.json();
+
     const filtered = detailData.items.filter(item => {
       const duration = item.contentDetails.duration;
-      return (duration.includes('M') || duration.includes('H')) && !item.snippet.title.toLowerCase().includes('#shorts');
+      const title = item.snippet.title.toLowerCase();
+      return (duration.includes('M') || duration.includes('H')) && !title.includes('#shorts');
     });
-    return filtered.length > 0 ? filtered[0] : detailData.items[0];
+
+    return filtered.length > 0 ? filtered[0] : null;
   } catch (e) { return null; }
 }
 
@@ -43,7 +50,7 @@ export default async function HomePage() {
   ].filter(item => item.img !== null);
 
   return (
-    <main className="bg-[#0a0a0a] text-white pb-32">
+    <main className="bg-[#0a0a0a] text-white pb-32 font-sans">
       
       {/* ① メインビジュアル */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden mb-32">
@@ -60,7 +67,7 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20" />
       </section>
 
-      {/* ② トピックスライダー (画面幅80%) */}
+      {/* ② トピックスライダー (80%幅) */}
       <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto mb-32 relative group">
         <div className="flex items-center gap-4">
           <button type="button" id="prev-btn" className="hidden md:flex shrink-0 w-16 h-16 items-center justify-center rounded-full border border-white/10 hover:bg-white/10 transition-all z-30 text-3xl font-light mt-[-4px] select-none text-white/40 hover:text-white">＜</button>
@@ -71,7 +78,7 @@ export default async function HomePage() {
                   <Link href={item.href} className="w-full h-full flex items-center justify-center group/item p-2">
                     <img src={item.img} alt="" className="max-w-full max-h-full object-contain block shadow-xl" />
                     <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md px-4 py-2 border-l-2 border-white opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
-                      <p className="text-[10px] tracking-[0.3em] font-bold text-white">{item.label}</p>
+                      <p className="text-[10px] tracking-[0.3em] font-bold text-white uppercase">{item.label}</p>
                     </div>
                   </Link>
                 </div>
@@ -86,10 +93,9 @@ export default async function HomePage() {
         `}} />
       </section>
 
-      {/* 共通の区切り線も80%幅に */}
       <hr className="border-t border-white/20 w-[80%] max-w-[1400px] mx-auto my-32" />
 
-      {/* ③ NEWS (画面幅80%) */}
+      {/* ③ NEWS (80%幅) */}
       <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight uppercase shippori-mincho">NEWS</h2>
@@ -114,7 +120,7 @@ export default async function HomePage() {
 
       <hr className="border-t border-white/20 w-[80%] max-w-[1400px] mx-auto my-32" />
 
-      {/* ④ SCHEDULE (画面幅80%) */}
+      {/* ④ SCHEDULE (80%幅) */}
       <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">SCHEDULE</h2>
@@ -127,14 +133,14 @@ export default async function HomePage() {
                 {latestSchedule.flyer?.url ? (
                   <img src={latestSchedule.flyer.url} alt={latestSchedule.venue} className="max-w-full max-h-full object-contain" />
                 ) : (
-                  <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Coming Soon</span>
+                  <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase font-sans">Coming Soon</span>
                 )}
               </div>
             </div>
             <div className="flex-grow w-full">
               <div className="mb-2 flex items-baseline gap-3">
                 <span className="text-2xl font-mono text-white tracking-tighter">
-                  {latestSchedule.date ? new Date(latestSchedule.date).toLocaleDateString('ja-JP').replace(/\//g, '.') : ''}
+                  {latestSchedule.date ? new Date(latestSchedule.date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).replace(/\//g, '.') : ''}
                 </span>
               </div>
               {latestSchedule.name && <div className="text-xl font-bold text-white mb-3 tracking-wide leading-relaxed">『{latestSchedule.name}』</div>}
@@ -153,19 +159,19 @@ export default async function HomePage() {
               <div className="text-white text-sm leading-relaxed mb-8 whitespace-pre-wrap opacity-80">{latestSchedule.description}</div>
               <div className="flex flex-wrap gap-4 pt-4">
                 {latestSchedule.ticket_url ? (
-                  <a href={latestSchedule.ticket_url} target="_blank" rel="noopener noreferrer" className="inline-block px-12 py-4 border border-white text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500">TICKET & INFO</a>
+                  <a href={latestSchedule.ticket_url} target="_blank" rel="noopener noreferrer" className="inline-block px-12 py-4 border border-white text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500 font-bold">TICKET & INFO</a>
                 ) : (
                   <p className="text-[11px] text-white tracking-widest bg-white/5 p-4 border-l-2 border-white">※TICKET取り置きは各SNSのDMでご連絡ください。</p>
                 )}
               </div>
             </div>
           </div>
-        ) : <p className="text-center py-20 opacity-40 uppercase">No live scheduled.</p>}
+        ) : <p className="text-center py-20 opacity-40 uppercase font-sans tracking-widest">No live scheduled.</p>}
       </section>
 
       <hr className="border-t border-white/20 w-[80%] max-w-[1400px] mx-auto my-32" />
 
-      {/* ⑤ DISCOGRAPHY (画面幅80%) */}
+      {/* ⑤ DISCOGRAPHY (80%幅) */}
       <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-widest uppercase shippori-mincho">DISCOGRAPHY</h2>
@@ -174,7 +180,7 @@ export default async function HomePage() {
         {latestDisco ? (
           <div className="flex flex-col md:flex-row gap-16 items-start">
             <div className="w-full md:w-96 shrink-0 shadow-2xl aspect-square overflow-hidden bg-white/5 flex items-center justify-center">
-              {latestDisco.jacket ? <img src={latestDisco.jacket.url} alt="" className="max-w-full max-h-full object-contain" /> : <div className="text-white/20 text-xs uppercase">No Image</div>}
+              {latestDisco.jacket ? <img src={latestDisco.jacket.url} alt="" className="max-w-full max-h-full object-contain" /> : <div className="text-white/20 text-xs uppercase font-sans">No Image</div>}
             </div>
             <div className="flex-grow w-full space-y-6">
               <div className="border-b border-white/10 pb-2">
@@ -188,12 +194,12 @@ export default async function HomePage() {
               )}
             </div>
           </div>
-        ) : <p className="text-center py-10 opacity-40 uppercase">No release found.</p>}
+        ) : <p className="text-center py-10 opacity-40 uppercase font-sans tracking-widest">No release found.</p>}
       </section>
 
       <hr className="border-t border-white/20 w-[80%] max-w-[1400px] mx-auto my-32" />
 
-      {/* ⑥ VIDEO (画面幅80%) */}
+      {/* ⑥ VIDEO (80%幅) */}
       <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase">VIDEO</h2>
@@ -205,17 +211,17 @@ export default async function HomePage() {
               <div className="relative aspect-video overflow-hidden bg-white/5 shadow-2xl">
                 <img src={video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-16 bg-[#FF0000] rounded-2xl flex items-center justify-center opacity-90 transition-transform duration-300 group-hover:scale-110 shadow-2xl">
+                  <div className="w-24 h-16 bg-[#FF0000] rounded-2xl flex items-center justify-center opacity-90 transition-transform duration-300 group-hover:scale-110 shadow-2xl border border-white/10">
                     <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[22px] border-l-white border-b-[12px] border-b-transparent ml-1"></div>
                   </div>
                 </div>
               </div>
               <div className="mt-10">
-                <h3 className="text-3xl md:text-4xl font-bold text-white group-hover:text-white/70 transition-colors tracking-tight">{video.snippet.title}</h3>
+                <h3 className="text-3xl md:text-4xl font-bold text-white group-hover:text-white/70 transition-colors tracking-tight leading-tight">{video.snippet.title}</h3>
               </div>
             </a>
           </div>
-        ) : <div className="py-20 text-center opacity-40 uppercase">No video found.</div>}
+        ) : <div className="py-20 text-center opacity-40 uppercase font-sans tracking-widest">No video found.</div>}
       </section>
 
     </main>
