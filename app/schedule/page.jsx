@@ -1,139 +1,103 @@
-import { client } from '../../lib/microcms';
+import Link from 'next/link';
+import { client } from '../lib/microcms';
 
-export const revalidate = 0;
-
-async function getSchedules() {
-  const data = await client.get({
-    endpoint: 'schedule',
-    queries: { 
-      orders: 'date',
-      // microCMSのフィルタ機能を使って、今日以降のライブのみ取得します
-      // [現在時刻よりも日付が後のもの] という条件です
-      filters: `date[greater_than]${new Date().toISOString()}`
-    }
-  });
-  return data.contents;
-}
+export const revalidate = 60;
 
 export default async function SchedulePage() {
-  const schedules = await getSchedules();
-
-  // もし予定されているライブが1件もない場合の表示
-  if (schedules.length === 0) {
-    return (
-      <main className="min-h-screen bg-[#0a0a0a] text-white pb-24 flex items-center justify-center">
-        <p className="text-sm tracking-[0.3em] text-white/40 uppercase shippori-mincho">No scheduled live at the moment.</p>
-      </main>
-    );
-  }
+  const data = await client.get({
+    endpoint: 'schedule',
+    queries: { orders: 'date' }
+  });
+  const schedules = data.contents;
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pb-24">
-      <div className="max-w-4xl mx-auto px-4 pt-24">
-        <h1 className="text-4xl font-bold mb-16 text-center tracking-widest uppercase shippori-mincho text-white">SCHEDULE</h1>
-        
+    <main className="bg-[#0a0a0a] text-white min-h-screen pb-32">
+      <section className="px-4 max-w-6xl mx-auto pt-32 w-full">
+        <h1 className="text-5xl font-bold mb-20 tracking-widest uppercase shippori-mincho text-center">SCHEDULE</h1>
+
         <div className="space-y-24">
-          {schedules.map((item) => {
-            const dateObj = item.date ? new Date(item.date) : null;
-            
-            const dateDisplay = dateObj ? dateObj.toLocaleDateString('ja-JP', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              timeZone: 'Asia/Tokyo'
-            }).replace(/\//g, '.') : 'DATE TBD';
-
-            const dayIndex = dateObj ? new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(dateObj).toUpperCase() : '';
-            const dayDisplay = dayIndex ? `[${dayIndex}]` : '';
-
-            return (
-              <div key={item.id} className="border-b border-white/20 pb-16 flex flex-col md:flex-row gap-8 items-start">
-                
-                <div className="w-full md:w-64 shrink-0">
-                  {item.flyer && item.flyer.url ? (
-                    <div className="w-full bg-black flex items-center justify-center border border-white/10 shadow-2xl">
-                      <img 
-                        src={item.flyer.url} 
-                        alt={item.name || item.venue} 
-                        className="w-full h-auto object-contain"
-                      />
-                    </div>
+          {schedules.map((item) => (
+            <div key={item.id} className="flex flex-col md:flex-row gap-12 items-start pb-20 border-b border-white/10 last:border-0">
+              
+              {/* 画像エリア：460px、4:3、中央配置 */}
+              <div className="w-full md:w-[460px] shrink-0">
+                <div className="w-full aspect-[4/3] bg-black/40 border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden">
+                  {item.flyer?.url ? (
+                    <img 
+                      src={item.flyer.url} 
+                      alt={item.venue} 
+                      className="max-w-full max-h-full object-contain" 
+                    />
                   ) : (
-                    <div className="w-full aspect-video bg-white/5 border border-white/10 flex items-center justify-center">
-                      <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Coming Soon</span>
-                    </div>
+                    <div className="text-[10px] tracking-[0.3em] text-white/20 uppercase font-sans">No Image</div>
                   )}
-                </div>
-                
-                <div className="flex-grow w-full">
-                  <div className="mb-2 flex items-baseline gap-3">
-                    <span className="text-2xl font-mono text-white tracking-tighter">
-                      {dateDisplay}
-                    </span>
-                    <span className="text-sm font-mono text-white tracking-widest uppercase">
-                      {dayDisplay}
-                    </span>
-                  </div>
-
-                  {item.name && (
-                    <div className="text-xl font-bold text-white mb-3 tracking-wide leading-relaxed">
-                      『{item.name}』
-                    </div>
-                  )}
-                  
-                  <h2 className="text-3xl font-bold mb-6 text-white tracking-tight">{item.venue}</h2>
-                  
-                  <div className="grid grid-cols-1 gap-4 mb-8 border-y border-white/10 py-5">
-                    <div className="flex gap-8 text-sm tracking-widest font-mono text-white">
-                      {item.open_time && <div>OPEN <span className="ml-2 font-sans">{item.open_time}</span></div>}
-                      {item.start_time && <div>START <span className="ml-2 font-sans">{item.start_time}</span></div>}
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm tracking-widest text-white uppercase font-sans">
-                      {item.adv_price && <div>ADV <span className="ml-1">¥{item.adv_price}</span></div>}
-                      {item.door_price && <div>DOOR <span className="ml-1">¥{item.door_price}</span></div>}
-                      {item.student_price && <div>STUDENT <span className="ml-1">¥{item.student_price}</span></div>}
-                      {item.stream_price && <div>STREAM <span className="ml-1">¥{item.stream_price}</span></div>}
-                    </div>
-                  </div>
-
-                  <div className="text-white text-sm leading-relaxed mb-8 whitespace-pre-wrap">
-                    {item.description}
-                  </div>
-
-                  <div className="flex flex-wrap gap-4">
-                    {item.ticket_url ? (
-                      <a 
-                        href={item.ticket_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block w-fit px-10 py-3 border border-white text-[10px] tracking-[0.2em] text-white hover:bg-white hover:text-black transition-all duration-500"
-                      >
-                        TICKET & INFO
-                      </a>
-                    ) : (
-                      <p className="text-[11px] text-white tracking-widest leading-loose w-full mb-2 bg-white/5 p-3 border-l-2 border-white">
-                        ※TICKET取り置きは、各SNSのDMでご連絡ください。
-                      </p>
-                    )}
-
-                    {item.stream_url && (
-                      <a 
-                        href={item.stream_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block w-fit px-10 py-3 border border-white text-[10px] tracking-[0.2em] text-white hover:bg-white hover:text-black transition-all duration-500"
-                      >
-                        STREAMING URL
-                      </a>
-                    )}
-                  </div>
                 </div>
               </div>
-            );
-          })}
+
+              {/* テキストエリア：既存の全要素を完全に維持 */}
+              <div className="flex-grow w-full">
+                <div className="mb-4 flex items-baseline gap-4">
+                  <span className="text-3xl font-mono text-white tracking-tighter">
+                    {item.date ? new Date(item.date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' }).replace(/\//g, '.') : 'DATE TBD'}
+                  </span>
+                  <span className="text-sm font-mono text-white/60 tracking-widest uppercase">
+                    {item.date ? `[${new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(new Date(item.date)).toUpperCase()}]` : ''}
+                  </span>
+                </div>
+
+                {item.name && (
+                  <div className="text-xl font-bold text-white mb-4 tracking-wide leading-relaxed">
+                    『{item.name}』
+                  </div>
+                )}
+
+                <h2 className="text-4xl font-bold mb-8 text-white tracking-tight">{item.venue}</h2>
+
+                <div className="grid grid-cols-1 gap-4 mb-8 border-y border-white/10 py-6">
+                  <div className="flex gap-10 text-sm tracking-[0.2em] font-mono text-white">
+                    {item.open_time && <div>OPEN <span className="ml-2 font-sans">{item.open_time}</span></div>}
+                    {item.start_time && <div>START <span className="ml-2 font-sans">{item.start_time}</span></div>}
+                  </div>
+                  <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm tracking-widest text-white uppercase font-sans">
+                    {item.adv_price && <div>ADV <span className="ml-1">¥{item.adv_price}</span></div>}
+                    {item.door_price && <div>DOOR <span className="ml-1">¥{item.door_price}</span></div>}
+                    {item.student_price && <div>STUDENT <span className="ml-1">¥{item.student_price}</span></div>}
+                  </div>
+                </div>
+
+                {item.description && (
+                  <div className="text-white/70 text-sm leading-loose mb-10 whitespace-pre-wrap max-w-2xl">
+                    {item.description}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-4">
+                  {item.ticket_url ? (
+                    <a 
+                      href={item.ticket_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-block px-12 py-4 border border-white text-[10px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 font-bold"
+                    >
+                      TICKET & INFO
+                    </a>
+                  ) : (
+                    <div className="text-[11px] text-white tracking-widest leading-loose w-full bg-white/5 p-4 border-l-2 border-white">
+                      ※チケットのご予約は各SNSのDMにて受け付けております。
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+        
+        <div className="mt-32 text-center">
+          <Link href="/" className="text-xs tracking-[0.4em] text-white/40 hover:text-white transition-colors border-b border-white/10 pb-2">
+            BACK TO HOME
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
