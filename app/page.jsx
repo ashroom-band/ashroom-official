@@ -22,19 +22,29 @@ async function getTargetVideo() {
     const videoId = targetUrl.match(/(?:v=|\/|embed\/|shorts\/|youtu\.be\/|v\/|vi\/|e\/)([^#\?&]{11})/)?.[1];
     if (!videoId) return `ID抽出失敗: ${targetUrl}`;
 
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${API_KEY}`);
+    // 修正ポイント：cache: 'no-store' を追加してキャッシュを無視させる
+    // また、URLの末尾にランダムな数値を付けてキャッシュを強制回避
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${API_KEY}&t=${Date.now()}`,
+      { cache: 'no-store' }
+    );
+    
     const data = await res.json();
 
     if (data.error) {
-      return `YouTube APIエラー: ${data.error.message}`; // これでエラー理由がわかります
+      return `YouTube APIエラー: ${data.error.message} (Reason: ${data.error.errors?.[0]?.reason})`;
     }
 
-    return data.items?.[0] || "動画が見つかりませんでした(API応答空)";
+    // デバッグ用：何件ヒットしたかを表示
+    if (!data.items || data.items.length === 0) {
+      return `動画が見つかりません: ID=${videoId} / ヒット数=${data.pageInfo?.totalResults}`;
+    }
+
+    return data.items[0];
   } catch (e) {
     return `通信エラー: ${e.message}`;
   }
 }
-
 // --- Main Page Component ---
 export default async function HomePage() {
   const [profile, news, schedules, disco, video] = await Promise.all([
