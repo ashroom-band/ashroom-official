@@ -15,11 +15,11 @@ export default async function DiscographyPage() {
 
   return (
     <main className="bg-[#0a0a0a] text-white min-h-screen pb-40">
-      <section className="px-4 max-w-[1400px] mx-auto pt-40 w-[90%] md:w-[80%]">
+      <section className="px-4 max-w-[1800px] mx-auto pt-40 w-[94%]">
         <h1 className="text-5xl font-bold mb-24 tracking-widest uppercase shippori-mincho text-center">DISCOGRAPHY</h1>
 
         {/* xl(1280px以上)で初めて4列になり、それ未満（PC半画面など）では2列を維持します */}
-<div className="grid grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-16 md:gap-x-12 md:gap-y-32">
+<div className="grid grid-cols-2 xl:grid-cols-4 gap-x-10 gap-y-20 md:gap-x-16 md:gap-y-32">
          
           {disco.map((item) => {
             // 日付と曜日の生成
