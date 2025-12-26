@@ -16,7 +16,8 @@ export default async function DiscoPage() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       <div className="max-w-6xl mx-auto px-4 pt-24">
-        <h1 className="text-4xl font-bold mb-16 text-center tracking-widest uppercase shippori-mincho text-white">DISCOGRAPHY</h1>
+        <h1 className="text-5xl font-bold mb-20 tracking-widest uppercase shippori-mincho text-center">DISCOGRAPHY</h1>
+
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
           {disco.map((item) => {
