@@ -13,56 +13,49 @@ async function getDiscography() { try { const data = await client.get({ endpoint
 
 // microCMSからURLを取得し、YouTube API(Videos:list)で1ポイントのみ消費して詳細取得
 async function getTargetVideo() {
-  if (!API_KEY) return "APIキーが設定されていません"; 
+  if (!API_KEY) return null;
   try {
-    const videoData = await client.get({ endpoint: 'video' });
-    const targetUrl = videoData.contents[0]?.youtube_url;
-    if (!targetUrl) return "microCMSにURLがありません";
+    // 1. microCMSから全動画のURLを取得（最大10件程度など）
+    const videoData = await client.get({ 
+      endpoint: 'video',
+      queries: { limit: 10 } 
+    });
+    
+    const urls = videoData.contents.map(c => c.youtube_url).filter(Boolean);
+    if (urls.length === 0) return null;
 
-    // --- ここを最新の修正版に差し替え ---
-    let videoId = "";
-    try {
-      if (targetUrl.includes('youtu.be/')) {
-        // 短縮URL (https://youtu.be/ID) の場合
-        videoId = targetUrl.split('youtu.be/')[1].split(/[?#]/)[0];
-      } else if (targetUrl.includes('v=')) {
-        // 通常URL (watch?v=ID) の場合
-        videoId = targetUrl.split('v=')[1].split(/[&?#]/)[0];
-      } else {
-        // その他の形式 (embed, shorts など)
-        const match = targetUrl.match(/(?:embed\/|shorts\/|v\/|vi\/|e\/)([^#\?&]{11})/);
-        videoId = match ? match[1] : "";
-      }
-    } catch (err) {
-      return `URL解析エラー: ${targetUrl}`;
-    }
-    // ----------------------------------
+    // 2. 全URLからIDを抽出
+    const videoIds = urls.map(url => {
+      if (url.includes('youtu.be/')) return url.split('youtu.be/')[1].split(/[?#]/)[0];
+      if (url.includes('v=')) return url.split('v=')[1].split(/[&?#]/)[0];
+      const match = url.match(/(?:embed\/|shorts\/|v\/|vi\/|e\/)([^#\?&]{11})/);
+      return match ? match[1] : null;
+    }).filter(id => id && id.length === 11);
 
-    if (!videoId || videoId.length !== 11) {
-      return `不適切なIDを検出しました: ${videoId || "なし"} (URL: ${targetUrl})`;
-    }
+    if (videoIds.length === 0) return null;
 
+    // 3. YouTube APIで全IDの情報を一括取得（カンマ区切りで送れます）
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${API_KEY}`,
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoIds.join(',')}&key=${API_KEY}`,
       { cache: 'no-store' }
     );
-    
     const data = await res.json();
 
-    if (data.error) {
-      return `YouTube APIエラー: ${data.error.message}`;
-    }
+    if (!data.items || data.items.length === 0) return null;
 
-    if (!data.items || data.items.length === 0) {
-      return `YouTube上に動画が見つかりません: ID=${videoId}`;
-    }
+    // 4. YouTube側の公開日（publishedAt）で降順に並び替える
+    const sortedVideos = data.items.sort((a, b) => {
+      return new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt);
+    });
 
-    return data.items[0];
+    // 5. 一番新しい動画を1つ返す
+    return sortedVideos[0];
+
   } catch (e) {
-    return `通信エラー: ${e.message}`;
+    console.error("Video Fetch Error:", e);
+    return null;
   }
 }
-
 // --- Main Page Component ---
 export default async function HomePage() {
   const [profile, news, schedules, disco, video] = await Promise.all([
