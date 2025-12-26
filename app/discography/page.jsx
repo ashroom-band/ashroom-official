@@ -13,19 +13,6 @@ async function getDiscography() {
 export default async function DiscographyPage() {
   const disco = await getDiscography();
 
-  // 日本時間での曜日取得用の関数
-  const getJSTDateWithDay = (dateStr) => {
-    if (!dateStr) return { date: 'TBA', day: '' };
-    const date = new Date(dateStr);
-    const dateFormatted = date.toLocaleDateString('ja-JP', { 
-      year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' 
-    }).replace(/\//g, '.');
-    const dayFormatted = new Intl.DateTimeFormat('en-US', { 
-      weekday: 'short', timeZone: 'Asia/Tokyo' 
-    }).format(date).toUpperCase();
-    return { date: dateFormatted, day: `[${dayFormatted}]` };
-  };
-
   return (
     <main className="bg-[#0a0a0a] text-white min-h-screen pb-40">
       <section className="px-4 max-w-[1400px] mx-auto pt-40 w-[90%] md:w-[80%]">
@@ -33,11 +20,22 @@ export default async function DiscographyPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-32">
           {disco.map((item) => {
-            const { date, day } = getJSTDateWithDay(item.release_date);
+            // 日付と曜日の生成
+            const dateObj = item.release_date ? new Date(item.release_date) : null;
+            const dateStr = dateObj ? dateObj.toLocaleDateString('ja-JP', { 
+              year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' 
+            }).replace(/\//g, '.') : 'TBA';
             
+            const dayStr = dateObj ? `[${new Intl.DateTimeFormat('en-US', { 
+              weekday: 'short', timeZone: 'Asia/Tokyo' 
+            }).format(dateObj).toUpperCase()}]` : '';
+
+            // リンクの優先順位付け
+            const targetLink = item.link || item.purchase_url || item.url;
+
             return (
               <div key={item.id} className="group">
-                {/* ジャケット写真エリア */}
+                {/* ジャケット写真 */}
                 <div className="aspect-square bg-white/5 mb-10 shadow-2xl overflow-hidden">
                   {item.jacket?.url ? (
                     <img
@@ -51,16 +49,17 @@ export default async function DiscographyPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {/* 日付：1.5倍、濃い白、日本時間曜日付き */}
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-xl tracking-[0.2em] text-white/90 font-mono">
-                      {date}
+                  {/* 日付・曜日・Type：すべて同じサイズ(text-xl)と濃い白(text-white/90)に統一 */}
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    {/* tracking-tighter で字間を詰めました */}
+                    <p className="text-xl tracking-tighter text-white/90 font-mono">
+                      {dateStr}
                     </p>
-                    <p className="text-sm tracking-widest text-white/50 font-mono">
-                      {day}
+                    <p className="text-xl tracking-tighter text-white/90 font-mono">
+                      {dayStr}
                     </p>
                     {item.type && (
-                      <p className="text-xs tracking-widest text-white/30 uppercase font-mono ml-2 border-l border-white/20 pl-3">
+                      <p className="text-xl tracking-tighter text-white/90 font-mono ml-2 border-l border-white/20 pl-3">
                         {item.type}
                       </p>
                     )}
@@ -76,20 +75,19 @@ export default async function DiscographyPage() {
                     </p>
                   )}
 
-                  {/* LISTEN / BUY ボタンの再実装：以前と同様のリンクへ */}
                   <div className="pt-4">
-                    {item.link_url ? (
+                    {targetLink ? (
                       <a 
-                        href={item.link} 
+                        href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="inline-block px-12 py-4 border border-white text-[10px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 font-bold"
+                        className="relative z-10 inline-block px-12 py-4 border border-white text-[10px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 font-bold"
                       >
                         LISTEN / BUY
                       </a>
                     ) : (
                       <div className="text-[11px] text-white/30 tracking-widest uppercase py-4">
-                        Coming Soon
+                        Release information coming soon
                       </div>
                     )}
                   </div>
