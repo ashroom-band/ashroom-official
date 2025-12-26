@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import { client } from '../../lib/microcms';
 
-export const revalidate = 0;
+export const revalidate = 86400;
 
 async function getDiscography() {
   const data = await client.get({
@@ -10,80 +11,65 @@ async function getDiscography() {
   return data.contents;
 }
 
-export default async function DiscoPage() {
+export default async function DiscographyPage() {
   const disco = await getDiscography();
 
   return (
     <main className="bg-[#0a0a0a] text-white min-h-screen pb-32">
-      <section className="px-4 max-w-6xl mx-auto pt-32 w-full">
+      {/* pt-40 でヘッダーとの被りを回避 */}
+      <section className="px-4 max-w-[1400px] mx-auto pt-40 w-[90%] md:w-[80%]">
+        {/* SCHEDULE と同様の中央寄せ・サイズ調整 */}
         <h1 className="text-5xl font-bold mb-20 tracking-widest uppercase shippori-mincho text-center">DISCOGRAPHY</h1>
 
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-          {disco.map((item) => {
-            const dateObj = item.release_date ? new Date(item.release_date) : null;
-            const dateDisplay = dateObj ? new Intl.DateTimeFormat('ja-JP', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              timeZone: 'Asia/Tokyo'
-            }).format(dateObj).replace(/\//g, '.') : '';
-
-            return (
-              <div key={item.id} className="block">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
+          {disco.map((item) => (
+            <div key={item.id} className="group">
+              <div className="aspect-square bg-white/5 mb-8 shadow-2xl overflow-hidden relative">
+                {item.jacket?.url ? (
+                  <img
+                    src={item.jacket.url}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/20 text-xs tracking-widest uppercase font-sans">No Image</div>
+                )}
                 
-                {/* ジャケット画像（ズーム効果を削除） */}
-                <div className="aspect-square w-full overflow-hidden bg-white/5 border border-white/10 mb-6 shadow-2xl relative">
-                  {item.jacket ? (
-                    <img 
-                      src={item.jacket.url} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20 text-xs tracking-widest uppercase font-sans">No Image</div>
-                  )}
-                </div>
-
-                {/* 作品情報 */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-baseline border-b border-white/10 pb-2">
-                    <span className="text-[13px] tracking-[0.2em] text-white font-bold uppercase">{item.type}</span>
-                    <span className="text-[13px] font-mono text-white tracking-tighter">
-                      {dateDisplay}
-                    </span>
-                  </div>
-                  
-                  {/* タイトル（ホバー時の色変化を削除） */}
-                  <h2 className="text-2xl font-bold tracking-wider text-white pt-1">{item.title}</h2>
-                  
-                  {/* 解説 */}
-                  {item.description && (
-                    <div 
-                      className="text-sm text-white/80 leading-relaxed mt-4 prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: item.description }}
-                    />
-                  )}
-
-                  {/* リンクボタン */}
-                  {item.link_url && (
-                    <div className="pt-6">
-                      <a 
-                        href={item.link_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block w-full py-4 border border-white text-[10px] tracking-[0.4em] text-center text-white hover:bg-white hover:text-black transition-all duration-500 uppercase"
-                      >
-                        LISTEN / BUY
-                      </a>
-                    </div>
-                  )}
-                </div>
+                {item.link && (
+                  <a 
+                    href={item.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+                  >
+                    <span className="px-6 py-2 border border-white text-[10px] tracking-widest font-bold">LISTEN / BUY</span>
+                  </a>
+                )}
               </div>
-            );
-          })}
+
+              <div className="space-y-3">
+                <p className="text-[10px] tracking-[0.3em] text-white/40 font-mono uppercase">
+                  {item.release_date ? item.release_date.replace(/-/g, '.') : 'TBA'} {item.type && `| ${item.type}`}
+                </p>
+                <h2 className="text-2xl font-bold tracking-tight leading-tight group-hover:text-white/70 transition-colors">
+                  {item.title}
+                </h2>
+                {item.description && (
+                  <p className="text-xs text-white/50 leading-loose line-clamp-3">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+
+        <div className="mt-40 text-center">
+          <Link href="/" className="text-xs tracking-[0.4em] text-white/40 hover:text-white transition-colors border-b border-white/10 pb-2 uppercase">
+            Back to Home
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
