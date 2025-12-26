@@ -19,25 +19,42 @@ async function getTargetVideo() {
     const targetUrl = videoData.contents[0]?.youtube_url;
     if (!targetUrl) return "microCMSにURLがありません";
 
-    const videoId = targetUrl.match(/(?:v=|\/|embed\/|shorts\/|youtu\.be\/|v\/|vi\/|e\/)([^#\?&]{11})/)?.[1];
-    if (!videoId) return `ID抽出失敗: ${targetUrl}`;
+    // --- ここを最新の修正版に差し替え ---
+    let videoId = "";
+    try {
+      if (targetUrl.includes('youtu.be/')) {
+        // 短縮URL (https://youtu.be/ID) の場合
+        videoId = targetUrl.split('youtu.be/')[1].split(/[?#]/)[0];
+      } else if (targetUrl.includes('v=')) {
+        // 通常URL (watch?v=ID) の場合
+        videoId = targetUrl.split('v=')[1].split(/[&?#]/)[0];
+      } else {
+        // その他の形式 (embed, shorts など)
+        const match = targetUrl.match(/(?:embed\/|shorts\/|v\/|vi\/|e\/)([^#\?&]{11})/);
+        videoId = match ? match[1] : "";
+      }
+    } catch (err) {
+      return `URL解析エラー: ${targetUrl}`;
+    }
+    // ----------------------------------
 
-    // 修正ポイント：cache: 'no-store' を追加してキャッシュを無視させる
-    // また、URLの末尾にランダムな数値を付けてキャッシュを強制回避
+    if (!videoId || videoId.length !== 11) {
+      return `不適切なIDを検出しました: ${videoId || "なし"} (URL: ${targetUrl})`;
+    }
+
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${API_KEY}&t=${Date.now()}`,
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${API_KEY}`,
       { cache: 'no-store' }
     );
     
     const data = await res.json();
 
     if (data.error) {
-      return `YouTube APIエラー: ${data.error.message} (Reason: ${data.error.errors?.[0]?.reason})`;
+      return `YouTube APIエラー: ${data.error.message}`;
     }
 
-    // デバッグ用：何件ヒットしたかを表示
     if (!data.items || data.items.length === 0) {
-      return `動画が見つかりません: ID=${videoId} / ヒット数=${data.pageInfo?.totalResults}`;
+      return `YouTube上に動画が見つかりません: ID=${videoId}`;
     }
 
     return data.items[0];
@@ -45,6 +62,7 @@ async function getTargetVideo() {
     return `通信エラー: ${e.message}`;
   }
 }
+
 // --- Main Page Component ---
 export default async function HomePage() {
   const [profile, news, schedules, disco, video] = await Promise.all([
