@@ -44,10 +44,15 @@ export default async function HomePage() {
   const latestSchedule = schedules[0];
   const latestDisco = disco[0];
 
+  // 修正ポイント：video がオブジェクトであり、かつ snippet を持っているかチェック
+  const videoThumb = (typeof video === 'object' && video?.snippet) 
+    ? (video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high?.url) 
+    : null;
+
   const sliderItems = [
     { img: latestSchedule?.flyer?.url || null, href: '/schedule', label: 'LATEST SCHEDULE' },
     { img: latestDisco?.jacket?.url || null, href: '/discography', label: 'LATEST RELEASE' },
-    { img: video?.snippet?.thumbnails?.maxres?.url || video?.snippet?.thumbnails?.high?.url || null, href: '/video', label: 'LATEST VIDEO' }
+    { img: videoThumb, href: '/video', label: 'LATEST VIDEO' }
   ].filter(item => item.img !== null);
 
   return (
@@ -201,12 +206,18 @@ export default async function HomePage() {
       <hr className="border-t border-white/20 w-[80%] max-w-[1400px] mx-auto my-32" />
 
       {/* ⑥ VIDEO (画面幅80%) - デザイン完全維持バージョン */}
-      <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto">
+     <section className="px-4 w-[90%] md:w-[80%] max-w-[1400px] mx-auto">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight shippori-mincho uppercase">VIDEO</h2>
           <Link href="/video" className="text-xs tracking-widest hover:opacity-50 border-b border-white/20 pb-1">VIEW ALL</Link>
         </div>
-        {video ? (
+        
+        {/* ここで video の型をチェックして表示を出し分ける */}
+        {typeof video === 'string' ? (
+          <div className="py-20 text-center text-red-500 border border-red-500/20 bg-red-500/5 uppercase tracking-widest text-sm px-4">
+            Debug Message: {video}
+          </div>
+        ) : video ? (
           <div className="w-full">
             <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer" className="block group">
               <div className="relative aspect-video overflow-hidden bg-white/5 shadow-2xl">
@@ -224,11 +235,10 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="py-20 text-center opacity-40 uppercase tracking-widest text-sm">
-            {API_KEY ? "No video found." : "YouTube API Key is missing."}
+            No video found.
           </div>
         )}
       </section>
-
     </main>
   );
 }
