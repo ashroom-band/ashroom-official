@@ -31,7 +31,7 @@ export default async function DiscographyPage() {
             }).format(dateObj).toUpperCase()}]` : '';
 
             // リンクの優先順位付け
-            const targetLink = item.link || item.purchase_url || item.url;
+            const targetLink = item.link_url;
 
             return (
               <div key={item.id} className="group">
@@ -41,7 +41,7 @@ export default async function DiscographyPage() {
                     <img
                       src={item.jacket.url}
                       alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white/50 text-sm tracking-[0.3em] uppercase font-sans font-bold">Coming soon...</div>
