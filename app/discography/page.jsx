@@ -78,7 +78,7 @@ export default async function DiscographyPage() {
 
                   {/* LISTEN / BUY ボタンの再実装：以前と同様のリンクへ */}
                   <div className="pt-4">
-                    {item.link ? (
+                    {item.link_url ? (
                       <a 
                         href={item.link} 
                         target="_blank" 
