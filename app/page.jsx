@@ -83,7 +83,7 @@ export default async function HomePage() {
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden mb-32">
         {profile?.artist_photo?.url && (
           <div className="absolute inset-0 z-0">
-            <img src={profile.artist_photo.url} alt="ashroom" className="w-full h-full object-cover brightness-[0.3] scale-105 animate-subtle-zoom" />
+            <img src={profile.artist_photo.url} alt="ashroom" className="w-full h-full object-cover brightness-[0.8] scale-105 animate-subtle-zoom" />
           </div>
         )}
         <div className="relative z-10 text-center px-4 w-full">
