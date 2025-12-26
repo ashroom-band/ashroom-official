@@ -18,7 +18,9 @@ export default async function DiscographyPage() {
       <section className="px-4 max-w-[1400px] mx-auto pt-40 w-[90%] md:w-[80%]">
         <h1 className="text-5xl font-bold mb-24 tracking-widest uppercase shippori-mincho text-center">DISCOGRAPHY</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-32">
+        {/* grid-cols-2(スマホ等で2列) / lg:grid-cols-4(画面が広い時に4列) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-20 md:gap-x-12 md:gap-y-32">
+         
           {disco.map((item) => {
             // 日付と曜日の生成
             const dateObj = item.release_date ? new Date(item.release_date) : null;
