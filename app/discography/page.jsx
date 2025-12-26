@@ -14,8 +14,8 @@ export default async function DiscoPage() {
   const disco = await getDiscography();
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pb-24">
-      <div className="max-w-6xl mx-auto px-4 pt-24">
+    <main className="bg-[#0a0a0a] text-white min-h-screen pb-32">
+      <section className="px-4 max-w-6xl mx-auto pt-32 w-full">
         <h1 className="text-5xl font-bold mb-20 tracking-widest uppercase shippori-mincho text-center">DISCOGRAPHY</h1>
 
         
