@@ -13,22 +13,25 @@ async function getDiscography() { try { const data = await client.get({ endpoint
 
 // microCMSからURLを取得し、YouTube API(Videos:list)で1ポイントのみ消費して詳細取得
 async function getTargetVideo() {
-  if (!API_KEY) return null;
+  if (!API_KEY) return "APIキーが設定されていません"; 
   try {
     const videoData = await client.get({ endpoint: 'video' });
     const targetUrl = videoData.contents[0]?.youtube_url;
-    if (!targetUrl) return null;
+    if (!targetUrl) return "microCMSにURLがありません";
 
-    // 修正後の正規表現：? などのパラメータが含まれていてもID(11桁)だけを抽出
     const videoId = targetUrl.match(/(?:v=|\/|embed\/|shorts\/|youtu\.be\/|v\/|vi\/|e\/)([^#\?&]{11})/)?.[1];
-    
-    if (!videoId) return null;
+    if (!videoId) return `ID抽出失敗: ${targetUrl}`;
 
     const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${API_KEY}`);
     const data = await res.json();
-    return data.items?.[0] || null;
+
+    if (data.error) {
+      return `YouTube APIエラー: ${data.error.message}`; // これでエラー理由がわかります
+    }
+
+    return data.items?.[0] || "動画が見つかりませんでした(API応答空)";
   } catch (e) {
-    return null;
+    return `通信エラー: ${e.message}`;
   }
 }
 
