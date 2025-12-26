@@ -31,15 +31,14 @@ export default async function DiscographyPage() {
       <section className="px-4 max-w-[1400px] mx-auto pt-40 w-[90%] md:w-[80%]">
         <h1 className="text-5xl font-bold mb-24 tracking-widest uppercase shippori-mincho text-center">DISCOGRAPHY</h1>
 
-        {/* ジャケットを1.3倍にするため、グリッドの列数を調整（3列→2列、または幅の確保） */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-32">
           {disco.map((item) => {
             const { date, day } = getJSTDateWithDay(item.release_date);
             
             return (
               <div key={item.id} className="group">
-                {/* 1.3倍相当の存在感を出すためのコンテナ調整 */}
-                <div className="aspect-square bg-white/5 mb-10 shadow-2xl overflow-hidden relative">
+                {/* ジャケット写真エリア */}
+                <div className="aspect-square bg-white/5 mb-10 shadow-2xl overflow-hidden">
                   {item.jacket?.url ? (
                     <img
                       src={item.jacket.url}
@@ -47,22 +46,11 @@ export default async function DiscographyPage() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20 text-xs tracking-widest uppercase font-sans font-bold">Coming soon...</div>
-                  )}
-                  
-                  {item.link && (
-                    <a 
-                      href={item.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-                    >
-                      <span className="px-8 py-3 border border-white text-xs tracking-[0.2em] font-bold">LISTEN / BUY</span>
-                    </a>
+                    <div className="w-full h-full flex items-center justify-center text-white/50 text-sm tracking-[0.3em] uppercase font-sans font-bold">Coming soon...</div>
                   )}
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {/* 日付：1.5倍、濃い白、日本時間曜日付き */}
                   <div className="flex items-baseline gap-3">
                     <p className="text-xl tracking-[0.2em] text-white/90 font-mono">
@@ -78,7 +66,7 @@ export default async function DiscographyPage() {
                     )}
                   </div>
 
-                  <h2 className="text-3xl font-bold tracking-tight leading-tight group-hover:text-white/70 transition-colors">
+                  <h2 className="text-4xl font-bold tracking-tight leading-tight group-hover:text-white/70 transition-colors">
                     {item.title}
                   </h2>
                   
@@ -87,6 +75,24 @@ export default async function DiscographyPage() {
                       {item.description}
                     </p>
                   )}
+
+                  {/* LISTEN / BUY ボタンの再実装：以前と同様のリンクへ */}
+                  <div className="pt-4">
+                    {item.link ? (
+                      <a 
+                        href={item.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-block px-12 py-4 border border-white text-[10px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 font-bold"
+                      >
+                        LISTEN / BUY
+                      </a>
+                    ) : (
+                      <div className="text-[11px] text-white/30 tracking-widest uppercase py-4">
+                        Coming Soon
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
