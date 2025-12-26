@@ -19,7 +19,9 @@ async function getTargetVideo() {
     const targetUrl = videoData.contents[0]?.youtube_url;
     if (!targetUrl) return null;
 
-    const videoId = targetUrl.match(/(?:v=|\/|embed\/|shorts\/|youtu\.be\/)([^?&/]+)/)?.[1];
+    // 修正後の正規表現：? などのパラメータが含まれていてもID(11桁)だけを抽出
+    const videoId = targetUrl.match(/(?:v=|\/|embed\/|shorts\/|youtu\.be\/|v\/|vi\/|e\/)([^#\?&]{11})/)?.[1];
+    
     if (!videoId) return null;
 
     const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${API_KEY}`);
