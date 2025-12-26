@@ -19,7 +19,7 @@ export default async function SchedulePage() {
           {schedules.map((item) => (
             <div key={item.id} className="flex flex-col md:flex-row gap-12 items-start pb-20 border-b border-white/10 last:border-0">
               
-              {/* 画像エリア：460px、4:3、中央配置、枠線なし */}
+              {/* 画像エリア */}
               <div className="w-full md:w-[460px] shrink-0">
                 <div className="w-full aspect-[4/3] bg-black/40 shadow-2xl flex items-center justify-center overflow-hidden">
                   {item.flyer?.url ? (
@@ -29,7 +29,8 @@ export default async function SchedulePage() {
                       className="max-w-full max-h-full object-contain" 
                     />
                   ) : (
-                    <div className="text-[10px] tracking-[0.3em] text-white/20 uppercase font-sans">No Image</div>
+                    /* 修正：文言変更と色を明るく調整 */
+                    <div className="text-[14px] tracking-[0.3em] text-white/50 uppercase font-sans font-bold">Coming soon...</div>
                   )}
                 </div>
               </div>
@@ -45,20 +46,23 @@ export default async function SchedulePage() {
                   </span>
                 </div>
 
+                {/* 修正：イベント名のフォントサイズ拡大 (text-4xl) */}
                 {item.name && (
-                  <div className="text-xl font-bold text-white mb-4 tracking-wide leading-relaxed">
+                  <div className="text-4xl font-bold text-white mb-6 tracking-wide leading-relaxed">
                     『{item.name}』
                   </div>
                 )}
 
                 <h2 className="text-4xl font-bold mb-8 text-white tracking-tight">{item.venue}</h2>
 
-                <div className="grid grid-cols-1 gap-4 mb-8 border-y border-white/10 py-6">
-                  <div className="flex gap-10 text-sm tracking-[0.2em] font-mono text-white">
+                <div className="grid grid-cols-1 gap-6 mb-8 border-y border-white/10 py-8">
+                  {/* 修正：時刻のフォントサイズ拡大 (text-2xl) */}
+                  <div className="flex gap-10 text-2xl tracking-[0.1em] font-mono text-white">
                     {item.open_time && <div>OPEN <span className="ml-2 font-sans">{item.open_time}</span></div>}
                     {item.start_time && <div>START <span className="ml-2 font-sans">{item.start_time}</span></div>}
                   </div>
-                  <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm tracking-widest text-white uppercase font-sans">
+                  {/* 修正：価格のフォントサイズ拡大 (text-xl) */}
+                  <div className="flex flex-wrap gap-x-10 gap-y-4 text-xl tracking-widest text-white uppercase font-sans">
                     {item.adv_price && <div>ADV <span className="ml-1">¥{item.adv_price}</span></div>}
                     {item.door_price && <div>DOOR <span className="ml-1">¥{item.door_price}</span></div>}
                     {item.student_price && <div>STUDENT <span className="ml-1">¥{item.student_price}</span></div>}
@@ -82,7 +86,8 @@ export default async function SchedulePage() {
                       TICKET & INFO
                     </a>
                   ) : (
-                    <div className="text-[11px] text-white tracking-widest leading-loose w-full bg-white/5 p-4 border-l-2 border-white">
+                    /* 修正：メッセージのフォントサイズ拡大 (text-lg) */
+                    <div className="text-lg text-white tracking-widest leading-loose w-full bg-white/5 p-6 border-l-4 border-white">
                       ※チケットのご予約は各SNSのDMにて受け付けております。
                     </div>
                   )}
